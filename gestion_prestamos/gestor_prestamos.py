@@ -1,7 +1,9 @@
 import pickle
+from datetime import datetime
 
-from gestion_prestamos.prestamo_no_encontrado import PrestamoNoEncontrado
-from gestion_prestamos.libro_no_disponible import LibroNoDisponible
+from gestion_prestamos.devolucion_invalida_error import DevolucionInvalidaError
+from gestion_prestamos.prestamo_no_encontrado_error import PrestamoNoEncontradoError
+from gestion_prestamos.libro_no_disponible_error import LibroNoDisponibleError
 
 PATH_PRESTAMOS = 'data/prestamos.pickle'
 
@@ -27,21 +29,22 @@ class GestorPrestamos:
         except KeyError:
             return None
 
+    def buscar_prestamos_usuario(self, identificador):
+        return [x[0] for x in self.__prestamos.items() if x[1]['usuario'] == identificador]
+
     def add_prestamo(self, isbn, identificador):
         if isbn not in self.__prestamos:
-            self.__prestamos[isbn] = identificador
+            self.__prestamos[isbn] = {'usuario': identificador, 'fecha': datetime.now()}
         else:
-            raise LibroNoDisponible(f'El libro con ISBN {isbn} ya está prestado al usuario '
+            raise LibroNoDisponibleError(f'El libro con ISBN {isbn} ya está prestado al usuario '
                                     f'con identificador {identificador}')
 
-    def remove_prestamo(self, isbn):
+    def remove_prestamo(self, isbn, identificador):
         if isbn in self.__prestamos:
-            del self.__prestamos[isbn]
+            if self.__prestamos[isbn]['usuario'] == identificador:
+                del self.__prestamos[isbn]
+            else:
+                raise DevolucionInvalidaError(isbn, identificador)
         else:
-            raise PrestamoNoEncontrado(f'El libro con ISBN {isbn} no está prestado')
+            raise PrestamoNoEncontradoError(isbn)
 
-
-if __name__ == '__main__':
-    gp = GestorPrestamos()
-    gp.add_prestamo('9781492056355', '1234567890')
-    gp.guardar_prestamos()

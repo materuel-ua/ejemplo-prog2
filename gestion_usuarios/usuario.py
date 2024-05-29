@@ -18,6 +18,34 @@ class Usuario:
     def hashed_password(self):
         return self._hashed_password
 
+    @hashed_password.setter
+    def hashed_password(self, value):
+        self._hashed_password = value
+
+    @property
+    def nombre(self):
+        return self._nombre
+
+    @nombre.setter
+    def nombre(self, value):
+        self._nombre = value
+
+    @property
+    def apellido1(self):
+        return self._apellido1
+
+    @apellido1.setter
+    def apellido1(self, value):
+        self._apellido1 = value
+
+    @property
+    def apellido2(self):
+        return self._apellido2
+
+    @apellido2.setter
+    def apellido2(self, value):
+        self._apellido2 = value
+
     def to_dict(self):
         return {'identificador': self._identificador,
                 'nombre': self._nombre,

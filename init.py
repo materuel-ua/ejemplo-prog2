@@ -5,5 +5,6 @@ ADMIN_PASSWORD = 'UAgCZ646D5l9Vbl'
 
 if __name__ == '__main__':
     gu = GestorUsuarios()
-    gu.add_usuario(Administrador('0','admin','admin','admin',gu.hash_password(ADMIN_PASSWORD)))
+    gu.add_usuario(Administrador('0', 'admin', 'admin', 'admin',
+                                 gu.hash_password(ADMIN_PASSWORD)))
     gu.guardar_usuarios()

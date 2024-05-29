@@ -10,10 +10,6 @@ class Libro:
     def isbn(self):
         return self.__isbn
 
-    @isbn.setter
-    def isbn(self, value):
-        self.__isbn = value
-
     @property
     def titulo(self):
         return self.__titulo
