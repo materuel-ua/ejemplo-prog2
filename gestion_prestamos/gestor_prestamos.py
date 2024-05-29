@@ -1,12 +1,12 @@
 import pickle
 
 from gestion_prestamos.prestamo_no_encontrado import PrestamoNoEncontrado
-from libro_no_disponible import LibroNoDisponible
+from gestion_prestamos.libro_no_disponible import LibroNoDisponible
 
 PATH_PRESTAMOS = 'data/prestamos.pickle'
 
 
-class GestionPrestamos:
+class GestorPrestamos:
     def __init__(self):
         self.__prestamos = self.cargar_prestamos()
 
@@ -24,7 +24,7 @@ class GestionPrestamos:
     def buscar_prestamos(self, isbn):
         try:
             return self.__prestamos[isbn]
-        except IndexError:
+        except KeyError:
             return None
 
     def add_prestamo(self, isbn, identificador):
@@ -42,6 +42,6 @@ class GestionPrestamos:
 
 
 if __name__ == '__main__':
-    gp = GestionPrestamos()
+    gp = GestorPrestamos()
     gp.add_prestamo('9781492056355', '1234567890')
     gp.guardar_prestamos()

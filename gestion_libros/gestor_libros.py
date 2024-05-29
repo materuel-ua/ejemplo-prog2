@@ -1,10 +1,10 @@
 import pickle
 
-from libro_ya_existe_error import LibroYaExisteError
-from libro_no_encontrado_error import LibroNoEncontrado
-from libro import Libro
+from gestion_libros.libro_ya_existe_error import LibroYaExisteError
+from gestion_libros.libro_no_encontrado_error import LibroNoEncontrado
+from gestion_libros.libro import Libro
 
-PATH_LIBROS = 'libros.pickle'
+PATH_LIBROS = 'data/libros.pickle'
 
 
 class GestorLibros:

@@ -1,4 +1,4 @@
-from usuario import Usuario
+from gestion_usuarios.usuario import Usuario
 
 
 class Administrador(Usuario):
