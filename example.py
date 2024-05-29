@@ -41,10 +41,20 @@ print(r.text)
 # Login usuario
 r = requests.get(f'{URL}/login?identificador=12345&password=zCWlAusK*7BfFy')
 print(r.status_code)
-token = r.text
+token_usuario = r.text
 print(token)
 
 # Devolver libro
-r = requests.delete(f'{URL}/prestamo?isbn=9781492056355', headers={'Authorization': 'Bearer ' + token})
+r = requests.delete(f'{URL}/prestamo?isbn=9781492056355', headers={'Authorization': 'Bearer ' + token_usuario})
+print(r.status_code)
+print(r.text)
+
+# Actualizar libro
+r = requests.put(f'{URL}/libro?isbn=9781492056355&titulo=Fluent Python 3rd Edition&autor=Ramalho, Luciano&editorial=O\'Reilly Media, Inc.&anyo=2022', headers={'Authorization': 'Bearer ' + token})
+print(r.status_code)
+print(r.text)
+
+# Eliminar libro
+r = requests.delete(f'{URL}/libro?isbn=9781492056355', headers={'Authorization': 'Bearer ' + token})
 print(r.status_code)
 print(r.text)

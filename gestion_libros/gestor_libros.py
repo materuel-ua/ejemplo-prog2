@@ -1,7 +1,7 @@
 import pickle
 
 from gestion_libros.libro_ya_existe_error import LibroYaExisteError
-from gestion_libros.libro_no_encontrado_error import LibroNoEncontrado
+from gestion_libros.libro_no_encontrado_error import LibroNoEncontradoError
 from gestion_libros.libro import Libro
 
 PATH_LIBROS = 'data/libros.pickle'
@@ -10,7 +10,6 @@ PATH_LIBROS = 'data/libros.pickle'
 class GestorLibros:
     def __init__(self):
         self.__libros = self.cargar_libros()
-
 
     def cargar_libros(self):
         try:
@@ -40,7 +39,6 @@ class GestorLibros:
     def __len__(self):
         return len(self.__libros)
 
-
     def __getitem__(self, item):
         return self.__libros[item]
 
@@ -50,16 +48,15 @@ class GestorLibros:
         if libro_a_eliminar:
             del self.__libros[self.__libros.index(libro_a_eliminar)]
         else:
-            raise LibroNoEncontrado(isbn)
+            raise LibroNoEncontradoError(isbn)
 
-if __name__ == '__main__':
-    l = Libro('9781492056355', 'Fluent Python, 2nd Edition', 'Ramalho, Luciano ',
-              "O'Reilly Media, Inc.", '2022')
+    def update_libro(self, isbn, titulo, autor, editorial, anyo):
+        libro_a_actualizar = self.buscar_libro(isbn)
 
-    gl = GestorLibros()
-
-    l=gl.buscar_libro('9781492056355')
-
-    gl.remove_libro('9781492056355')
-
-    gl.guardar_libros()
+        if libro_a_actualizar:
+            libro_a_actualizar.titulo = titulo
+            libro_a_actualizar.autor = autor
+            libro_a_actualizar.editorial = editorial
+            libro_a_actualizar.anyo = anyo
+        else:
+            raise LibroNoEncontradoError(isbn)

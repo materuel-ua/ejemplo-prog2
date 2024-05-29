@@ -112,6 +112,54 @@ def add_libro():
         return f'Libro con ISBN {isbn} creado', 200
 
 
+@app.route('/libro', methods=['PUT'])
+@jwt_required()
+def update_libro():
+    gu = GestorUsuarios()
+    if not isinstance(gu.buscar_usuario(get_jwt_identity()), Administrador):
+        return 'Solo los administradores pueden actualizar libros', 403
+
+    isbn = request.args.get('isbn')
+    titulo = request.args.get('titulo')
+    autor = request.args.get('autor')
+    editorial = request.args.get('editorial')
+    anyo = request.args.get('anyo')
+
+    gl = GestorLibros()
+    gp = GestorPrestamos()
+
+    if gp.buscar_prestamos(isbn):
+        return f'No se puede actualizar el libro con ISBN {isbn} por estar prestado', 409
+    elif not gl.buscar_libro(isbn):
+        return f'Libro con ISBN {isbn} no existe', 404
+    else:
+        gl.update_libro(isbn, titulo, autor, editorial, anyo)
+        gl.guardar_libros()
+        return f'Libro con ISBN {isbn} actualizado', 200
+
+
+@app.route('/libro', methods=['DELETE'])
+@jwt_required()
+def remove_libro():
+    gu = GestorUsuarios()
+    if not isinstance(gu.buscar_usuario(get_jwt_identity()), Administrador):
+        return 'Solo los administradores pueden actualizar libros', 403
+
+    isbn = request.args.get('isbn')
+
+    gl = GestorLibros()
+    gp = GestorPrestamos()
+
+    if gp.buscar_prestamos(isbn):
+        return f'No se puede eliminar el libro con ISBN {isbn} por estar prestado', 409
+    elif not gl.buscar_libro(isbn):
+        return f'Libro con ISBN {isbn} no existe', 404
+    else:
+        gl.remove_libro(isbn)
+        gl.guardar_libros()
+        return f'Libro con ISBN {isbn} eliminado', 200
+
+
 @app.route('/libro', methods=['GET'])
 @jwt_required(optional=True)
 def get_libro():

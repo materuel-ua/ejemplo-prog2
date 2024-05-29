@@ -10,9 +10,46 @@ class Libro:
     def isbn(self):
         return self.__isbn
 
+    @isbn.setter
+    def isbn(self, value):
+        self.__isbn = value
+
+    @property
+    def titulo(self):
+        return self.__titulo
+
+    @titulo.setter
+    def titulo(self, value):
+        self.__titulo = value
+
+    @property
+    def autor(self):
+        return self.__autor
+
+    @autor.setter
+    def autor(self, value):
+        self.__autor = value
+
+    @property
+    def editorial(self):
+        return self.__editorial
+
+    @editorial.setter
+    def editorial(self, value):
+        self.__editorial = value
+
+    @property
+    def anyo(self):
+        return self.__anyo
+
+    @anyo.setter
+    def anyo(self, value):
+        self.__anyo = value
+
     def __repr__(self):
-        return (f'Libro(isbn={self.__isbn}, titulo={self.__titulo}, autor={self.__autor}, editorial={self.__editorial}, '
-                f'anyo={self.__anyo})')
+        return (
+            f'Libro(isbn={self.__isbn}, titulo={self.__titulo}, autor={self.__autor}, editorial={self.__editorial}, '
+            f'anyo={self.__anyo})')
 
     def to_dict(self):
         return {
@@ -22,9 +59,3 @@ class Libro:
             'editorial': self.__editorial,
             'anyo': self.__anyo
         }
-
-
-if __name__ == '__main__':
-    l = Libro('9781492056355', 'Fluent Python, 2nd Edition', 'Ramalho, Luciano ',
-              "O'Reilly Media, Inc.", '2022')
-    print(l)
