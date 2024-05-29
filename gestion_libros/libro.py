@@ -16,6 +16,6 @@ class Libro:
 
 
 if __name__ == '__main__':
-    l = Libro(9781492056355, 'Fluent Python, 2nd Edition', 'Ramalho, Luciano ',
+    l = Libro('9781492056355', 'Fluent Python, 2nd Edition', 'Ramalho, Luciano ',
               "O'Reilly Media, Inc.", '2022')
     print(l)

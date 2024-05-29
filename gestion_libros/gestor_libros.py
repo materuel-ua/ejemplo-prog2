@@ -53,13 +53,13 @@ class GestorLibros:
             raise LibroNoEncontrado(isbn)
 
 if __name__ == '__main__':
-    l = Libro(9781492056355, 'Fluent Python, 2nd Edition', 'Ramalho, Luciano ',
+    l = Libro('9781492056355', 'Fluent Python, 2nd Edition', 'Ramalho, Luciano ',
               "O'Reilly Media, Inc.", '2022')
 
     gl = GestorLibros()
 
-    l=gl.buscar_libro(9781492056355)
+    l=gl.buscar_libro('9781492056355')
 
-    gl.remove_libro(9781492056355)
+    gl.remove_libro('9781492056355')
 
     gl.guardar_libros()
