@@ -1,11 +1,11 @@
 import hashlib
 import pickle
 
-from usuario_no_encontrado_error import UsuarioNoEncontrado
-from usuario_ya_existe_error import UsuarioYaExisteError
-from usuario import Usuario
+from gestion_usuarios.usuario_no_encontrado_error import UsuarioNoEncontrado
+from gestion_usuarios.usuario_ya_existe_error import UsuarioYaExisteError
+from gestion_usuarios.usuario import Usuario
 
-PATH_USUARIOS = 'usuarios.pickle'
+PATH_USUARIOS = 'data/usuarios.pickle'
 
 
 class GestorUsuarios:

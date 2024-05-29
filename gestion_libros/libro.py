@@ -14,6 +14,15 @@ class Libro:
         return (f'Libro(isbn={self.__isbn}, titulo={self.__titulo}, autor={self.__autor}, editorial={self.__editorial}, '
                 f'anyo={self.__anyo})')
 
+    def to_dict(self):
+        return {
+            'isbn': self.__isbn,
+            'titulo': self.__titulo,
+            'autor': self.__autor,
+            'editorial': self.__editorial,
+            'anyo': self.__anyo
+        }
+
 
 if __name__ == '__main__':
     l = Libro('9781492056355', 'Fluent Python, 2nd Edition', 'Ramalho, Luciano ',
