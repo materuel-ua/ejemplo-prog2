@@ -5,10 +5,17 @@ from flask_jwt_extended import JWTManager, create_access_token, jwt_required, ge
 
 from gestion_libros.gestor_libros import GestorLibros
 from gestion_libros.libro import Libro
+from gestion_libros.libro_no_encontrado_error import LibroNoEncontradoError
+from gestion_libros.libro_ya_existe_error import LibroYaExisteError
+from gestion_prestamos.devolucion_invalida_error import DevolucionInvalidaError
 from gestion_prestamos.gestor_prestamos import GestorPrestamos
+from gestion_prestamos.libro_no_disponible_error import LibroNoDisponibleError
+from gestion_prestamos.prestamo_no_encontrado_error import PrestamoNoEncontradoError
 from gestion_usuarios.administrador import Administrador
 from gestion_usuarios.gestor_usuarios import GestorUsuarios
 from gestion_usuarios.usuario import Usuario
+from gestion_usuarios.usuario_no_encontrado_error import UsuarioNoEncontradoError
+from gestion_usuarios.usuario_ya_existe_error import UsuarioYaExisteError
 
 app = Flask(__name__)
 app.config["JWT_SECRET_KEY"] = "QrQc3luSLOS9APc"
@@ -55,9 +62,7 @@ def add_usuario():
         return (f'La contraseña debe contener un mínimo de ocho caracteres, al menos una letra mayúscula, '
                 f'una letra minúscula, un número y un carácter especial.'), 400
 
-    if gu.buscar_usuario(identificador):
-        return f'Usuario {identificador} ya existe', 409
-    else:
+    try:
         if administrador == 'si':
             if current_user == '0':
                 gu.add_usuario(Administrador(identificador, nombre, apellido1, apellido2, gu.hash_password(password)))
@@ -67,6 +72,23 @@ def add_usuario():
             gu.add_usuario(Usuario(identificador, nombre, apellido1, apellido2, gu.hash_password(password)))
         gu.guardar_usuarios()
         return f'Usuario {identificador} registrado', 200
+    except UsuarioYaExisteError:
+        return f'Usuario {identificador} ya existe', 409
+
+@app.route('/usuario', methods=['PUT'])
+@jwt_required()
+def update_usuario():
+    identificador = get_jwt_identity()
+    nombre = request.args.get('nombre')
+    apellido1 = request.args.get('apellido1')
+    apellido2 = request.args.get('apellido2')
+    try:
+        gu = GestorUsuarios()
+        gu.update_usuario(identificador, nombre, apellido1, apellido2)
+        gu.guardar_usuarios()
+        return f'Usuario {identificador} actualizado', 200
+    except UsuarioNoEncontradoError:
+        return f'Usuario {identificador} no encontrado', 404
 
 
 @app.route('/usuario', methods=['GET'])
@@ -88,6 +110,29 @@ def get_usuario():
             else:
                 return f'Usuario con identificador {identificador} no encontrado', 404
 
+@app.route('/usuario', methods=['DELETE'])
+@jwt_required()
+def remove_usuario():
+    identificador = get_jwt_identity()
+
+    gu = GestorUsuarios()
+    if not isinstance(gu.buscar_usuario(identificador), Administrador):
+        return 'Solo los administradores pueden eliminar usuarios', 403
+
+    identificador = request.args.get('identificador')
+
+    gp =  GestorPrestamos()
+    if gp.buscar_prestamos_usuario(identificador):
+        return f'No se puede eliminar el usuario {identificador} por tener libros prestados', 409
+    else:
+        try:
+            gu.remove_usuario(identificador)
+            gu.guardar_usuarios()
+            return f'Usuario {identificador} eliminado', 200
+        except UsuarioNoEncontradoError:
+            return f'Usuario {identificador} no encontrado', 404
+
+
 
 @app.route('/libro', methods=['POST'])
 @jwt_required()
@@ -104,12 +149,12 @@ def add_libro():
 
     gl = GestorLibros()
 
-    if gl.buscar_libro(isbn):
-        return f'Libro con ISBN {isbn} ya existe', 409
-    else:
+    try:
         gl.add_libro(Libro(isbn, titulo, autor, editorial, anyo))
         gl.guardar_libros()
         return f'Libro con ISBN {isbn} creado', 200
+    except LibroYaExisteError:
+        return f'Libro con ISBN {isbn} ya existe', 409
 
 
 @app.route('/libro', methods=['PUT'])
@@ -130,12 +175,13 @@ def update_libro():
 
     if gp.buscar_prestamos(isbn):
         return f'No se puede actualizar el libro con ISBN {isbn} por estar prestado', 409
-    elif not gl.buscar_libro(isbn):
-        return f'Libro con ISBN {isbn} no existe', 404
-    else:
+
+    try:
         gl.update_libro(isbn, titulo, autor, editorial, anyo)
         gl.guardar_libros()
         return f'Libro con ISBN {isbn} actualizado', 200
+    except LibroNoEncontradoError:
+        return f'Libro con ISBN {isbn} no existe', 404
 
 
 @app.route('/libro', methods=['DELETE'])
@@ -152,12 +198,13 @@ def remove_libro():
 
     if gp.buscar_prestamos(isbn):
         return f'No se puede eliminar el libro con ISBN {isbn} por estar prestado', 409
-    elif not gl.buscar_libro(isbn):
-        return f'Libro con ISBN {isbn} no existe', 404
-    else:
+
+    try:
         gl.remove_libro(isbn)
         gl.guardar_libros()
         return f'Libro con ISBN {isbn} eliminado', 200
+    except LibroNoEncontradoError:
+        return f'Libro con ISBN {isbn} no existe', 404
 
 
 @app.route('/libro', methods=['GET'])
@@ -172,8 +219,12 @@ def get_libro():
     if l:
         l_dict = l.to_dict()
         if get_jwt_identity() and isinstance(gu.buscar_usuario(get_jwt_identity()), Administrador):
-            usuario = gp.buscar_prestamos(isbn)
-            l_dict['usuario'] = gu.buscar_usuario(usuario).to_dict() if usuario else None
+            prestamo = gp.buscar_prestamos(isbn)
+            if prestamo:
+                l_dict['usuario'] = gu.buscar_usuario(prestamo['usuario']).to_dict()
+                l_dict['fecha_prestamo'] = prestamo['fecha'].strftime("%d/%m/%Y %H:%M:%S")
+            else:
+                l_dict['usuario'] = None
         else:
             l_dict['disponible'] = False if gp.buscar_prestamos(isbn) else True
         return jsonify(l_dict), 200
@@ -192,27 +243,28 @@ def add_prestamo():
     identificador = request.args.get('identificador')
 
     gp = GestorPrestamos()
-    prestamo = gp.buscar_prestamos(isbn)
-    if prestamo:
-        return f'El libro con ISBN {isbn} ya está prestado al usuario {prestamo}', 409
-    else:
+
+    try:
         gp.add_prestamo(isbn, identificador)
         gp.guardar_prestamos()
         return f'El libro con ISBN {isbn} ha sido prestado al usuario {identificador}', 200
+    except LibroNoDisponibleError:
+        return f'El libro con ISBN {isbn} ya está prestado al usuario {identificador}', 409
 
 
 @app.route('/prestamo', methods=['DELETE'])
 @jwt_required()
-def delete_prestamo():
+def remove_prestamo():
     isbn = request.args.get('isbn')
 
-    gp = GestorPrestamos()
-    prestamo = gp.buscar_prestamos(isbn)
-    if prestamo and prestamo == get_jwt_identity():
-        gp.remove_prestamo(isbn)
+    try:
+        gp = GestorPrestamos()
+        gp.remove_prestamo(isbn, get_jwt_identity())
         gp.guardar_prestamos()
         return f'El libro con ISBN {isbn} ha sido devuelto por el usuario {get_jwt_identity()}', 403
-    else:
+    except PrestamoNoEncontradoError:
+        return f'El libro con ISBN {isbn} no está prestado actualmente', 404
+    except DevolucionInvalidaError:
         return f'El libro con ISBN {isbn} no está prestado actualmente al usuario {get_jwt_identity()}', 403
 
 

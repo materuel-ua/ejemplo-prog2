@@ -1,7 +1,7 @@
 import hashlib
 import pickle
 
-from gestion_usuarios.usuario_no_encontrado_error import UsuarioNoEncontrado
+from gestion_usuarios.usuario_no_encontrado_error import UsuarioNoEncontradoError
 from gestion_usuarios.usuario_ya_existe_error import UsuarioYaExisteError
 from gestion_usuarios.usuario import Usuario
 
@@ -47,19 +47,13 @@ class GestorUsuarios:
         if usuario_a_eliminar:
             del self.__usuarios[self.__usuarios.index(usuario_a_eliminar)]
         else:
-            raise UsuarioNoEncontrado(identificador)
+            raise UsuarioNoEncontradoError(identificador)
 
-
-if __name__ == '__main__':
-    gu = GestorUsuarios()
-
-    u = Usuario('1234567890', 'Yo', 'También',
-              "También", gu.hash_password('nzsdfiljsdfilfjñlsjdfjszdño'))
-
-    gu.add_usuario(u)
-
-    l=gu.buscar_usuario('1234567890')
-
-    gu.remove_usuario('1234567890')
-
-    gu.guardar_usuarios()
+    def update_usuario(self, identificador, nombre, apellido1, apellido2):
+        usuario_a_actualizar = self.buscar_usuario(identificador)
+        if usuario_a_actualizar:
+            usuario_a_actualizar.nombre = nombre
+            usuario_a_actualizar.apellido1 = apellido1
+            usuario_a_actualizar.apellido2 = apellido2
+        else:
+            raise UsuarioNoEncontradoError(identificador)

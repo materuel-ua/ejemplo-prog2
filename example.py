@@ -1,3 +1,5 @@
+import os
+
 import requests
 
 URL = 'http://127.0.0.1:5000/'
@@ -9,7 +11,7 @@ token = r.text
 print(token)
 
 # Crear usuario
-r = requests.post(f'{URL}/usuario?identificador=123456&nombre=Miguel&apellido1=Teruel&apellido2=Martinez&password=zCWlAusK*7BfFy&administrador=si', headers={'Authorization': 'Bearer ' + token})
+r = requests.post(f'{URL}/usuario?identificador=12345&nombre=Miguel&apellido1=Teruel&apellido2=Martinez&password=zCWlAusK*7BfFy', headers={'Authorization': 'Bearer ' + token})
 print(r.status_code)
 print(r.text)
 
@@ -56,5 +58,15 @@ print(r.text)
 
 # Eliminar libro
 r = requests.delete(f'{URL}/libro?isbn=9781492056355', headers={'Authorization': 'Bearer ' + token})
+print(r.status_code)
+print(r.text)
+
+# Actualizar usuario
+r = requests.put(f'{URL}/usuario?&nombre=Miguel Angel&apellido1=Teruel&apellido2=Martinez', headers={'Authorization': 'Bearer ' + token_usuario})
+print(r.status_code)
+print(r.text)
+
+# Eliminar usuario
+r = requests.delete(f'{URL}/usuario?identificador=12345', headers={'Authorization': 'Bearer ' + token})
 print(r.status_code)
 print(r.text)
