@@ -1,7 +1,9 @@
 import pickle
+
+from gestion_prestamos.prestamo_no_encontrado import PrestamoNoEncontrado
 from libro_no_disponible import LibroNoDisponible
 
-PATH_PRESTAMOS = 'prestamos.pickle'
+PATH_PRESTAMOS = 'data/prestamos.pickle'
 
 
 class GestionPrestamos:
@@ -31,6 +33,12 @@ class GestionPrestamos:
         else:
             raise LibroNoDisponible(f'El libro con ISBN {isbn} ya está prestado al usuario '
                                     f'con identificador {identificador}')
+
+    def remove_prestamo(self, isbn):
+        if isbn in self.__prestamos:
+            del self.__prestamos[isbn]
+        else:
+            raise PrestamoNoEncontrado(f'El libro con ISBN {isbn} no está prestado')
 
 
 if __name__ == '__main__':
