@@ -58,9 +58,9 @@ def add_usuario():
     password = request.args.get('password')
     administrador = request.args.get('administrador', 'no')
 
-    if not re.search(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$', password):
+    if not gu.validar_password(password):
         return (f'La contraseña debe contener un mínimo de ocho caracteres, al menos una letra mayúscula, '
-                f'una letra minúscula, un número y un carácter especial.'), 400
+                f'una letra minúscula, un número y un carácter especial'), 400
 
     try:
         if administrador == 'si':
@@ -74,6 +74,7 @@ def add_usuario():
         return f'Usuario {identificador} registrado', 200
     except UsuarioYaExisteError:
         return f'Usuario {identificador} ya existe', 409
+
 
 @app.route('/usuario', methods=['PUT'])
 @jwt_required()
@@ -110,6 +111,7 @@ def get_usuario():
             else:
                 return f'Usuario con identificador {identificador} no encontrado', 404
 
+
 @app.route('/usuario', methods=['DELETE'])
 @jwt_required()
 def remove_usuario():
@@ -121,7 +123,7 @@ def remove_usuario():
 
     identificador = request.args.get('identificador')
 
-    gp =  GestorPrestamos()
+    gp = GestorPrestamos()
     if gp.buscar_prestamos_usuario(identificador):
         return f'No se puede eliminar el usuario {identificador} por tener libros prestados', 409
     else:
@@ -131,7 +133,6 @@ def remove_usuario():
             return f'Usuario {identificador} eliminado', 200
         except UsuarioNoEncontradoError:
             return f'Usuario {identificador} no encontrado', 404
-
 
 
 @app.route('/libro', methods=['POST'])
@@ -256,7 +257,6 @@ def add_prestamo():
 @jwt_required()
 def remove_prestamo():
     isbn = request.args.get('isbn')
-
     try:
         gp = GestorPrestamos()
         gp.remove_prestamo(isbn, get_jwt_identity())
@@ -266,6 +266,33 @@ def remove_prestamo():
         return f'El libro con ISBN {isbn} no está prestado actualmente', 404
     except DevolucionInvalidaError:
         return f'El libro con ISBN {isbn} no está prestado actualmente al usuario {get_jwt_identity()}', 403
+
+
+@app.route('/cambiar_password', methods=['PUT'])
+@jwt_required()
+def cambiar_password():
+    gu = GestorUsuarios()
+
+    identificador = get_jwt_identity()
+    new_password = request.args.get('new_password')
+
+    print(new_password)
+
+    if not gu.validar_password(new_password):
+        return (f'La contraseña debe contener un mínimo de ocho caracteres, al menos una letra mayúscula, '
+                f'una letra minúscula, un número y un carácter especial'), 400
+
+    old_password_hash = gu.hash_password(request.args.get('old_password'))
+    new_password_hash = gu.hash_password(new_password)
+
+    usuario_a_actualizar = gu.buscar_usuario(identificador)
+
+    if usuario_a_actualizar.hashed_password == old_password_hash:
+        gu.buscar_usuario(identificador).hashed_password = new_password_hash
+        gu.guardar_usuarios()
+        return 'Contraseña cambiada correctamente'
+    else:
+        return 'Contraseña antigua incorrecta'
 
 
 if __name__ == '__main__':
