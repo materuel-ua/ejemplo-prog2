@@ -11,8 +11,8 @@ Proyecto de ejemplo de la asignatura Programación 2 (GIA)
 
 ## Requisitos
 
-* Permitirá la gestión de usuarios (alta, baja, modificación, acceso) y roles del sistema (usuarios estándar y administradores) (Alumno 1)
-* Guardará información de usuarios libros en una base de datos (Alumno 1)
+* Permitirá la gestión de libros, usuarios (alta, baja, modificación, acceso) y roles del sistema (usuarios estándar y administradores) (Alumno 1)
+* Guardará información de usuarios y libros en disco (Alumno 1)
 * El catálogo de libros se podrá importar y exportar en formatos JSON, CSV, XML y BibTeX (Alumno 2)
 * Permitirá la exportación de citas bibliográficas de lis libros en formato APA, MLA, Chicago, Turabian e IEEE (Alumno 2)
 * Tendrá una API RESTful que permitirá el uso de la aplicación (Alumno 3)
