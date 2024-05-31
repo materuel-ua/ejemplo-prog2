@@ -10,9 +10,6 @@ PATH_LIBROS = 'data/libros.pickle'
 PATH_CARATULAS = 'images/'
 
 
-
-
-
 class GestorLibros:
     def __init__(self):
         self.__libros = self.cargar_libros()
@@ -72,4 +69,3 @@ class GestorLibros:
         for infile in glob.glob(os.path.join(PATH_CARATULAS, isbn + '.*')):
             return infile
         return None
-
