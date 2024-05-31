@@ -1,6 +1,7 @@
+import os
 import re
 
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_file
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
 
 from gestion_libros.gestor_libros import GestorLibros
@@ -19,6 +20,7 @@ from gestion_usuarios.usuario_ya_existe_error import UsuarioYaExisteError
 
 app = Flask(__name__)
 app.config["JWT_SECRET_KEY"] = "QrQc3luSLOS9APc"
+app.config["UPLOAD_FOLDER"] = "images"
 jwt = JWTManager(app)
 
 
@@ -293,6 +295,34 @@ def cambiar_password():
         return 'Contraseña cambiada correctamente'
     else:
         return 'Contraseña antigua incorrecta'
+
+
+@app.route('/caratula', methods=['POST'])
+@jwt_required()
+def subir_caratula():
+    gu = GestorUsuarios()
+    if not isinstance(gu.buscar_usuario(get_jwt_identity()), Administrador):
+        return 'Solo los administradores pueden subir carátulas', 403
+
+    isbn = request.args.get('isbn')
+    gl = GestorLibros()
+    if not gl.buscar_libro(isbn):
+        return f'Libro con ISBN {isbn} no encontrado', 404
+
+    file = request.files['file']
+    file.save(os.path.join(app.config['UPLOAD_FOLDER'], isbn + '.' + file.filename.split('.')[1]))
+    return f'Carátula del libro con ISBN {isbn} guardada', 200
+
+
+@app.route('/caratula', methods=['GET'])
+def bajar_pelicula():
+    isbn = request.args.get('isbn')
+    file = GestorLibros.buscar_caratula(isbn)
+
+    if file is None:
+        return f'Libro con ISBN {isbn} no encontrado o sin carátula', 404
+
+    return send_file(file), 200
 
 
 if __name__ == '__main__':

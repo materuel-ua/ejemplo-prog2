@@ -1,3 +1,5 @@
+import glob
+import os
 import pickle
 
 from gestion_libros.libro_ya_existe_error import LibroYaExisteError
@@ -5,6 +7,10 @@ from gestion_libros.libro_no_encontrado_error import LibroNoEncontradoError
 from gestion_libros.libro import Libro
 
 PATH_LIBROS = 'data/libros.pickle'
+PATH_CARATULAS = 'images/'
+
+
+
 
 
 class GestorLibros:
@@ -60,3 +66,10 @@ class GestorLibros:
             libro_a_actualizar.anyo = anyo
         else:
             raise LibroNoEncontradoError(isbn)
+
+    @staticmethod
+    def buscar_caratula(isbn):
+        for infile in glob.glob(os.path.join(PATH_CARATULAS, isbn + '.*')):
+            return infile
+        return None
+
