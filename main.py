@@ -4,6 +4,7 @@ import re
 from flask import Flask, request, jsonify, send_file
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
 
+from gestion_libros import exportacion
 from gestion_libros.gestor_libros import GestorLibros
 from gestion_libros.libro import Libro
 from gestion_libros.libro_no_encontrado_error import LibroNoEncontradoError
@@ -322,6 +323,11 @@ def bajar_pelicula():
         return f'Libro con ISBN {isbn} no encontrado o sin carátula', 404
 
     return send_file(file), 200
+
+
+@app.route('/exportar', methods=['GET'])
+def exportar():
+    return send_file(exportacion.comprime()), 200
 
 
 if __name__ == '__main__':

@@ -103,3 +103,9 @@ if r.status_code == 200:
 r = requests.post(f'{URL}/libro?isbn=9780545798631', headers={'Authorization': 'Bearer ' + token})
 print(r.status_code)
 print(r.text)
+
+# Bajar carátula
+r = requests.get(f'{URL}/exportar')
+print(r.status_code)
+if r.status_code == 200:
+    open("biblioteca.zip", "wb").write(r.content)

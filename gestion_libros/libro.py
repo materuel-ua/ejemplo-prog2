@@ -39,7 +39,7 @@ class Libro:
                 editorial = ''
 
             try:
-                anyo = datos_libro['volumeInfo']['publishedDate'][:3]
+                anyo = datos_libro['volumeInfo']['publishedDate'][:4]
             except KeyError:
                 anyo = ''
 
@@ -97,4 +97,5 @@ class Libro:
             'editorial': self.__editorial,
             'anyo': self.__anyo
         }
+
 
