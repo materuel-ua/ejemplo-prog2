@@ -1,3 +1,9 @@
+from datetime import datetime
+
+import requests
+from gestion_libros.no_conexion_error import NoConexionError
+
+
 class Libro:
     def __init__(self, isbn, titulo, autor, editorial, anyo):
         self.__isbn = isbn
@@ -5,6 +11,42 @@ class Libro:
         self.__autor = autor
         self.__editorial = editorial
         self.__anyo = anyo
+
+    @classmethod
+    def por_isbn(cls, isbn):
+        try:
+            r = requests.get(f'https://www.googleapis.com/books/v1/volumes?q=isbn:{isbn}')
+            datos_libro = r.json()
+
+            if datos_libro['totalItems'] == 0:
+                raise NoConexionError(isbn)
+            else:
+                datos_libro = datos_libro['items'][0]
+
+            try:
+                titulo = datos_libro['volumeInfo']['title']
+            except KeyError:
+                titulo = ''
+
+            try:
+                autor = datos_libro['volumeInfo']['authors'][0]
+            except KeyError:
+                autor = ''
+
+            try:
+                editorial = datos_libro['volumeInfo']['publisher']
+            except KeyError:
+                editorial = ''
+
+            try:
+                anyo = datos_libro['volumeInfo']['publishedDate'][:3]
+            except KeyError:
+                anyo = ''
+
+            return cls(isbn, titulo, autor, editorial, anyo)
+
+        except requests.exceptions.ConnectionError:
+            raise NoConexionError(isbn)
 
     @property
     def isbn(self):
@@ -55,3 +97,4 @@ class Libro:
             'editorial': self.__editorial,
             'anyo': self.__anyo
         }
+

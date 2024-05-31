@@ -8,6 +8,7 @@ from gestion_libros.gestor_libros import GestorLibros
 from gestion_libros.libro import Libro
 from gestion_libros.libro_no_encontrado_error import LibroNoEncontradoError
 from gestion_libros.libro_ya_existe_error import LibroYaExisteError
+from gestion_libros.no_conexion_error import NoConexionError
 from gestion_prestamos.devolucion_invalida_error import DevolucionInvalidaError
 from gestion_prestamos.gestor_prestamos import GestorPrestamos
 from gestion_prestamos.libro_no_disponible_error import LibroNoDisponibleError
@@ -22,12 +23,6 @@ app = Flask(__name__)
 app.config["JWT_SECRET_KEY"] = "QrQc3luSLOS9APc"
 app.config["UPLOAD_FOLDER"] = "images"
 jwt = JWTManager(app)
-
-
-@app.route('/test')
-@jwt_required()
-def test():
-    return str(get_jwt_identity())
 
 
 @app.route('/login', methods=['GET'])
@@ -153,7 +148,13 @@ def add_libro():
     gl = GestorLibros()
 
     try:
-        gl.add_libro(Libro(isbn, titulo, autor, editorial, anyo))
+        if titulo and autor and editorial and anyo:
+            gl.add_libro(Libro(isbn, titulo, autor, editorial, anyo))
+        else:
+            try:
+                gl.add_libro(Libro.por_isbn(isbn))
+            except NoConexionError:
+                return f'No se han podido obtener los datos del libro con ISBN {isbn}', 424
         gl.guardar_libros()
         return f'Libro con ISBN {isbn} creado', 200
     except LibroYaExisteError:
@@ -277,8 +278,6 @@ def cambiar_password():
 
     identificador = get_jwt_identity()
     new_password = request.args.get('new_password')
-
-    print(new_password)
 
     if not gu.validar_password(new_password):
         return (f'La contraseña debe contener un mínimo de ocho caracteres, al menos una letra mayúscula, '
