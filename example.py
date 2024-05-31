@@ -66,9 +66,9 @@ print(r.status_code)
 print(r.text)
 
 # Eliminar libro
-r = requests.delete(f'{URL}/libro?isbn=9781492056355', headers={'Authorization': 'Bearer ' + token})
-print(r.status_code)
-print(r.text)
+# r = requests.delete(f'{URL}/libro?isbn=9781492056355', headers={'Authorization': 'Bearer ' + token})
+# print(r.status_code)
+# print(r.text)
 
 # Actualizar usuario
 r = requests.put(f'{URL}/usuario?&nombre=Miguel Angel&apellido1=Teruel&apellido2=Martinez',
@@ -84,5 +84,10 @@ print(r.text)
 
 # Eliminar usuario
 r = requests.delete(f'{URL}/usuario?identificador=12345', headers={'Authorization': 'Bearer ' + token})
+print(r.status_code)
+print(r.text)
+
+# Subir carátula
+r = requests.post(f'{URL}/caratula?isbn=9781492056355', headers={'Authorization': 'Bearer ' + token}, files={'file': open('/Users/miji/Desktop/fluent.jpg', 'rb')})
 print(r.status_code)
 print(r.text)
