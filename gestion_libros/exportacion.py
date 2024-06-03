@@ -4,6 +4,7 @@ import os.path
 import tempfile
 import zipfile
 import csv
+from datetime import datetime
 
 try:
     import zlib
@@ -74,7 +75,7 @@ def to_bibtex(temp_dir):
 
 
 def comprime():
-    funciones = [to_json, to_xml, to_csv, to_bibtex]
+    funciones = [to_json, to_xml, to_bibtex, to_csv]
 
     procesos = []
 
@@ -88,13 +89,12 @@ def comprime():
     for p in procesos:
         p.join()
 
-    zip_file = os.path.join(temp_dir, 'biblioteca.zip')
+    zip_file = os.path.join(temp_dir, datetime.now().strftime('%y%m%d_%H%M%S')+'.zip')
 
-    types = ['json', 'xml', 'csv', 'bib']
-
-    for t in types:
-        with zipfile.ZipFile(zip_file, mode="w") as archive:
-            print(
-                archive.write(os.path.join(temp_dir, f'biblioteca.{t}'), f'biblioteca.{t}', compress_type=compression))
+    with zipfile.ZipFile(zip_file, mode="w") as archive:
+        archive.write(os.path.join(temp_dir, f'biblioteca.json'), f'biblioteca.json', compress_type=compression)
+        archive.write(os.path.join(temp_dir, f'biblioteca.xml'), f'biblioteca.xml', compress_type=compression)
+        archive.write(os.path.join(temp_dir, f'biblioteca.csv'), f'biblioteca.cvs', compress_type=compression)
+        archive.write(os.path.join(temp_dir, f'biblioteca.bib'), f'biblioteca.bib', compress_type=compression)
 
     return zip_file
