@@ -88,10 +88,10 @@ print(r.status_code)
 print(r.text)
 
 # Subir carátula
-r = requests.post(f'{URL}/caratula?isbn=9781492056355', headers={'Authorization': 'Bearer ' + token},
-                  files={'file': open('/Users/miji/Desktop/fluent.jpg', 'rb')})
-print(r.status_code)
-print(r.text)
+# r = requests.post(f'{URL}/caratula?isbn=9781492056355', headers={'Authorization': 'Bearer ' + token},
+#                   files={'file': open('/Users/miji/Desktop/fluent.jpg', 'rb')})
+# print(r.status_code)
+# print(r.text)
 
 # Bajar carátula
 r = requests.get(f'{URL}/caratula?isbn=9781492056355')
@@ -109,3 +109,9 @@ r = requests.get(f'{URL}/exportar')
 print(r.status_code)
 if r.status_code == 200:
     open("biblioteca.zip", "wb").write(r.content)
+
+# Generar carné
+r = requests.get(f'{URL}/carne', headers={'Authorization': 'Bearer ' + token})
+print(r.status_code)
+if r.status_code == 200:
+    open("carne.pdf", "wb").write(r.content)

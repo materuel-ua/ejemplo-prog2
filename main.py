@@ -19,6 +19,7 @@ from gestion_usuarios.gestor_usuarios import GestorUsuarios
 from gestion_usuarios.usuario import Usuario
 from gestion_usuarios.usuario_no_encontrado_error import UsuarioNoEncontradoError
 from gestion_usuarios.usuario_ya_existe_error import UsuarioYaExisteError
+from informes.carnes import generar_carne
 
 app = Flask(__name__)
 app.config["JWT_SECRET_KEY"] = "QrQc3luSLOS9APc"
@@ -328,6 +329,13 @@ def bajar_pelicula():
 @app.route('/exportar', methods=['GET'])
 def exportar():
     return send_file(exportacion.comprime()), 200
+
+
+@app.route('/carne', methods=['GET'])
+@jwt_required()
+def bajar_carne():
+    gu = GestorUsuarios()
+    return send_file(generar_carne(gu.buscar_usuario(get_jwt_identity()))), 200
 
 
 if __name__ == '__main__':
