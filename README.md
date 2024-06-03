@@ -21,3 +21,9 @@ Proyecto de ejemplo de la asignatura Programación 2 (GIA)
 * Usará la API de Google Books para obtener información sobre un libro en base a su ISBN (Alumno 4)
 * Exportará carnés de usuarios y fichas de libros en formato PDF (Alumno 5)
 * Emitirá informes en formato PDF de los libros actualmente en préstamo (Alumno 5)
+
+## Posibles mejoras
+
+* Comprobar los parámetros de entrada de las peticiones a la API
+* Posibilidad de que un libro tenga más de un autor
+* Permitir más tipos de publicaciones además de libros (artículos científicos, actas de congresos, informes, etc.)
