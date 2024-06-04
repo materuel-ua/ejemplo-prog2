@@ -122,7 +122,7 @@ def main() -> None:
             case '14':
                 # Subir carátula
                 r = requests.post(f'{URL}/caratula?isbn=9781492056355', headers={'Authorization': 'Bearer ' + token},
-                                  files={'file': open('/Users/miji/Desktop/fluent.jpg', 'rb')})
+                                  files={'file': open('fluent.jpg', 'rb')})
                 print(r.status_code)
                 print(r.text)
 
