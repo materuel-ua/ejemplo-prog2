@@ -348,6 +348,7 @@ def bajar_ficha():
     else:
         return f'Libro con ISBN {isbn} no encontrado', 404
 
+
 @app.route('/informe_prestamos', methods=['GET'])
 @jwt_required()
 def bajar_informe_prestamos():
@@ -356,6 +357,22 @@ def bajar_informe_prestamos():
         return 'Solo los administradores pueden generar informes de préstamos', 403
 
     return send_file(generar_prestamos()), 200
+
+
+@app.route('/referencia', methods=['GET'])
+def get_referencia():
+    gl = GestorLibros()
+    isbn = request.args.get('isbn')
+    formato = request.args.get('formato')
+    l = gl.buscar_libro(isbn)
+    if l:
+        try:
+            return jsonify(l.generar_referencias()[formato]), 200
+        except KeyError:
+            return 'Formato de referencia invalido', 400
+
+    else:
+        return f'Libro con ISBN {isbn} no encontrado', 404
 
 
 if __name__ == '__main__':
