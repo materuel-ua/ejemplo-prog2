@@ -19,7 +19,7 @@ from gestion_usuarios.gestor_usuarios import GestorUsuarios
 from gestion_usuarios.usuario import Usuario
 from gestion_usuarios.usuario_no_encontrado_error import UsuarioNoEncontradoError
 from gestion_usuarios.usuario_ya_existe_error import UsuarioYaExisteError
-from informes.carnes import generar_carne
+from informes.generador_informes import generar_carne, generar_prestamos, generar_ficha
 
 app = Flask(__name__)
 app.config["JWT_SECRET_KEY"] = "QrQc3luSLOS9APc"
@@ -336,6 +336,26 @@ def exportar():
 def bajar_carne():
     gu = GestorUsuarios()
     return send_file(generar_carne(gu.buscar_usuario(get_jwt_identity()))), 200
+
+
+@app.route('/ficha', methods=['GET'])
+def bajar_ficha():
+    isbn = request.args.get('isbn')
+    gl = GestorLibros()
+    l = gl.buscar_libro(isbn)
+    if l:
+        return send_file(generar_ficha(l)), 200
+    else:
+        return f'Libro con ISBN {isbn} no encontrado', 404
+
+@app.route('/informe_prestamos', methods=['GET'])
+@jwt_required()
+def bajar_informe_prestamos():
+    gu = GestorUsuarios()
+    if not isinstance(gu.buscar_usuario(get_jwt_identity()), Administrador):
+        return 'Solo los administradores pueden generar informes de préstamos', 403
+
+    return send_file(generar_prestamos()), 200
 
 
 if __name__ == '__main__':

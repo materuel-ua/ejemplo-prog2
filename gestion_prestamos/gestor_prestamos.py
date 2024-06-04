@@ -48,3 +48,10 @@ class GestorPrestamos:
         else:
             raise PrestamoNoEncontradoError(isbn)
 
+    def len(self):
+        return len(self.__prestamos)
+
+    def __getitem__(self, item):
+        lista_prestamos = [(k, v) for k, v in self.__prestamos.items()]
+        return lista_prestamos[item]
+
