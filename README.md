@@ -1,6 +1,6 @@
 # Gestión de biblioteca
 
-Proyecto de ejemplo de la asignatura Programación 2 (GIA)
+Proyecto de ejemplo de la asignatura Programación 2 (GIA) consistente en la gestión de una biblioteca.
 
 ## Autores
 * Apellido 1, Apellido 1, Nombre 1
