@@ -98,4 +98,26 @@ class Libro:
             'anyo': self.__anyo
         }
 
+    def generar_referencias(self):
+        # Formato APA
+        apa = f'{self.__autor} ({self.__anyo}). *{self.__titulo}*. {self.__editorial}.'
 
+        # Formato MLA
+        mla = f'{self.__autor}. *{self.__titulo}*. {self.__editorial}, {self.__anyo}.'
+
+        # Formato Chicago
+        chicago = f'{self.__autor}. {self.__anyo}. *{self.__titulo}*. {self.__editorial}.'
+
+        # Formato Turabian
+        turabian = f'{self.__autor}. *{self.__titulo}*. {self.__editorial}, {self.__anyo}.'
+
+        # Formato IEEE
+        ieee = f'{self.__autor}, *{self.__titulo}*. {self.__editorial}, {self.__anyo}.'
+
+        return {
+            "APA": apa,
+            "MLA": mla,
+            "Chicago": chicago,
+            "Turabian": turabian,
+            "IEEE": ieee
+        }
