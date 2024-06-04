@@ -1,3 +1,17 @@
+"""
+Módulo para la exportación de una colección de libros en varios formatos y compresión en un archivo ZIP.
+
+Este módulo proporciona funciones para exportar los datos de una colección de libros en formatos JSON, XML, CSV y BibTeX,
+y luego comprime estos archivos en un archivo ZIP. Utiliza multiprocesamiento para realizar las exportaciones en paralelo.
+
+Funciones:
+    - to_json(temp_dir: str) -> None: Exporta los libros a un archivo JSON.
+    - to_xml(temp_dir: str) -> None: Exporta los libros a un archivo XML.
+    - to_csv(temp_dir: str) -> None: Exporta los libros a un archivo CSV.
+    - to_bibtex(temp_dir: str) -> None: Exporta los libros a un archivo BibTeX.
+    - comprime() -> str: Comprime los archivos exportados en un archivo ZIP y retorna la ruta del archivo ZIP.
+"""
+
 import json
 import multiprocessing
 import os.path
@@ -5,12 +19,12 @@ import tempfile
 import zipfile
 import csv
 from datetime import datetime
+from typing import List
 
 try:
     import zlib
-
     compression = zipfile.ZIP_DEFLATED
-except:
+except ImportError:
     compression = zipfile.ZIP_STORED
 
 modes = {zipfile.ZIP_DEFLATED: 'deflated',
@@ -20,14 +34,30 @@ modes = {zipfile.ZIP_DEFLATED: 'deflated',
 from gestion_libros.gestor_libros import GestorLibros
 
 
-def to_json(temp_dir):
+def to_json(temp_dir: str) -> None:
+    """
+    Exporta los libros a un archivo JSON.
+
+    Parámetros:
+    -----------
+    temp_dir : str
+        Directorio temporal donde se guardará el archivo JSON.
+    """
     gl = GestorLibros()
     gl.cargar_libros()
     with open(os.path.join(temp_dir, 'biblioteca.json'), 'w') as f:
         f.write(json.dumps([l.to_dict() for l in gl], indent=2))
 
 
-def to_xml(temp_dir):
+def to_xml(temp_dir: str) -> None:
+    """
+    Exporta los libros a un archivo XML.
+
+    Parámetros:
+    -----------
+    temp_dir : str
+        Directorio temporal donde se guardará el archivo XML.
+    """
     output = '<biblioteca>\n'
     gl = GestorLibros()
     gl.cargar_libros()
@@ -45,7 +75,15 @@ def to_xml(temp_dir):
         f.write(output)
 
 
-def to_csv(temp_dir):
+def to_csv(temp_dir: str) -> None:
+    """
+    Exporta los libros a un archivo CSV.
+
+    Parámetros:
+    -----------
+    temp_dir : str
+        Directorio temporal donde se guardará el archivo CSV.
+    """
     gl = GestorLibros()
     gl.cargar_libros()
 
@@ -56,7 +94,15 @@ def to_csv(temp_dir):
             writer.writerow([l.isbn, l.autor, l.editorial, l.anyo])
 
 
-def to_bibtex(temp_dir):
+def to_bibtex(temp_dir: str) -> None:
+    """
+    Exporta los libros a un archivo BibTeX.
+
+    Parámetros:
+    -----------
+    temp_dir : str
+        Directorio temporal donde se guardará el archivo BibTeX.
+    """
     output = ''
     gl = GestorLibros()
     gl.cargar_libros()
@@ -74,13 +120,21 @@ def to_bibtex(temp_dir):
         f.write(output)
 
 
-def comprime():
-    funciones = [to_json, to_xml, to_bibtex, to_csv]
+def comprime() -> str:
+    """
+    Comprimes los archivos exportados en un archivo ZIP y retorna la ruta del archivo ZIP.
 
-    procesos = []
+    Retorna:
+    --------
+    str
+        Ruta del archivo ZIP generado.
+    """
+    funciones = [to_json, to_xml, to_bibtex, to_csv]
+    procesos: List[multiprocessing.Process] = []
 
     temp_dir = tempfile.gettempdir()
 
+    # Ejecuta las funciones de exportación en paralelo
     for f in funciones:
         p = multiprocessing.Process(target=f, args=(temp_dir,))
         procesos.append(p)
@@ -89,12 +143,14 @@ def comprime():
     for p in procesos:
         p.join()
 
-    zip_file = os.path.join(temp_dir, datetime.now().strftime('%y%m%d_%H%M%S')+'.zip')
+    # Nombre del archivo ZIP basado en la fecha y hora actuales
+    zip_file = os.path.join(temp_dir, datetime.now().strftime('%y%m%d_%H%M%S') + '.zip')
 
+    # Comprime los archivos exportados en un archivo ZIP
     with zipfile.ZipFile(zip_file, mode="w") as archive:
-        archive.write(os.path.join(temp_dir, f'biblioteca.json'), f'biblioteca.json', compress_type=compression)
-        archive.write(os.path.join(temp_dir, f'biblioteca.xml'), f'biblioteca.xml', compress_type=compression)
-        archive.write(os.path.join(temp_dir, f'biblioteca.csv'), f'biblioteca.cvs', compress_type=compression)
-        archive.write(os.path.join(temp_dir, f'biblioteca.bib'), f'biblioteca.bib', compress_type=compression)
+        archive.write(os.path.join(temp_dir, 'biblioteca.json'), 'biblioteca.json', compress_type=compression)
+        archive.write(os.path.join(temp_dir, 'biblioteca.xml'), 'biblioteca.xml', compress_type=compression)
+        archive.write(os.path.join(temp_dir, 'biblioteca.csv'), 'biblioteca.csv', compress_type=compression)
+        archive.write(os.path.join(temp_dir, 'biblioteca.bib'), 'biblioteca.bib', compress_type=compression)
 
     return zip_file

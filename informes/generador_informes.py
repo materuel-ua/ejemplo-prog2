@@ -1,3 +1,14 @@
+"""
+Módulo para la generación de documentos PDF relacionados con la gestión de usuarios, libros y préstamos.
+
+Este módulo proporciona funciones para generar carnés de usuario, fichas de libros y listados de préstamos en formato PDF.
+
+Funciones:
+    - generar_carne(usuario) -> str: Genera un carné de usuario en formato PDF.
+    - generar_ficha(libro) -> str: Genera una ficha de libro en formato PDF.
+    - generar_prestamos() -> str: Genera un listado de préstamos en formato PDF.
+"""
+
 import os
 import tempfile
 from datetime import datetime
@@ -5,14 +16,27 @@ from datetime import datetime
 from reportlab.lib.units import cm
 from reportlab.pdfgen.canvas import Canvas
 from reportlab.lib.pagesizes import A4, landscape
-from reportlab.platypus import SimpleDocTemplate
-from reportlab.platypus.tables import Table
+from reportlab.platypus import SimpleDocTemplate, Table
+
 from gestion_libros.gestor_libros import GestorLibros
 from gestion_prestamos.gestor_prestamos import GestorPrestamos
 from gestion_usuarios.gestor_usuarios import GestorUsuarios
 
 
-def generar_carne(usuario):
+def generar_carne(usuario) -> str:
+    """
+    Genera un carné de usuario en formato PDF.
+
+    Parámetros:
+    -----------
+    usuario : Usuario
+        Instancia de la clase Usuario para el cual se generará el carné.
+
+    Retorna:
+    --------
+    str
+        Ruta del archivo PDF generado.
+    """
     filename = os.path.join(tempfile.gettempdir(), f'carne_{usuario.identificador}.pdf')
     canvas = Canvas(filename, pagesize=(8 * cm, 5 * cm))
     canvas.setFont('Helvetica', 12)
@@ -31,7 +55,20 @@ def generar_carne(usuario):
     return filename
 
 
-def generar_ficha(libro):
+def generar_ficha(libro) -> str:
+    """
+    Genera una ficha de libro en formato PDF.
+
+    Parámetros:
+    -----------
+    libro : Libro
+        Instancia de la clase Libro para el cual se generará la ficha.
+
+    Retorna:
+    --------
+    str
+        Ruta del archivo PDF generado.
+    """
     filename = os.path.join(tempfile.gettempdir(), f'ficha_{libro.isbn}.pdf')
     canvas = Canvas(filename, pagesize=(15 * cm, 10 * cm))
     canvas.setFont('Helvetica-Bold', 10)
@@ -56,9 +93,17 @@ def generar_ficha(libro):
     return filename
 
 
-def generar_prestamos():
+def generar_prestamos() -> str:
+    """
+    Genera un listado de préstamos en formato PDF.
+
+    Retorna:
+    --------
+    str
+        Ruta del archivo PDF generado.
+    """
     elements = []
-    filename = os.path.join(tempfile.gettempdir(), f'prestamos_{datetime.now().strftime('%y%m%d_%H%M%S')}.pdf')
+    filename = os.path.join(tempfile.gettempdir(), f'prestamos_{datetime.now().strftime("%y%m%d_%H%M%S")}.pdf')
     doc = SimpleDocTemplate(filename, pagesize=landscape(A4))
 
     gp = GestorPrestamos()
@@ -72,7 +117,7 @@ def generar_prestamos():
         data.append((p[0],
                      l.titulo if len(l.titulo) < 25 else l.titulo[:25] + '...',
                      p[1]['usuario'],
-                     u if len(str(u)) < 25 else u[:25] + '...',
+                     str(u) if len(str(u)) < 25 else str(u)[:25] + '...',
                      p[1]['fecha'].strftime('%d/%m/%Y')))
     table = Table(data, colWidths=150, rowHeights=20)
     elements.append(table)
