@@ -10,6 +10,9 @@ class Usuario:
         return (f'Usuario(identificador={self._identificador}, nombre={self._nombre}, apellido1={self._apellido1}, '
                 f'apellido2={self._apellido2}, hashed_password={self._hashed_password})')
 
+    def __str__(self):
+        return f'{self._nombre} {self.apellido1} {self.apellido2}'
+
     @property
     def identificador(self):
         return self._identificador

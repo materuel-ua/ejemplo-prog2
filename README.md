@@ -27,3 +27,4 @@ Proyecto de ejemplo de la asignatura Programación 2 (GIA)
 * Comprobar los parámetros de entrada de las peticiones a la API
 * Posibilidad de que un libro tenga más de un autor
 * Permitir más tipos de publicaciones además de libros (artículos científicos, actas de congresos, informes, etc.)
+* Controlar paginación en informe de préstamos en PDF y mejorar maquetación
