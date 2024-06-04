@@ -1,6 +1,4 @@
 import os
-import re
-
 from flask import Flask, request, jsonify, send_file
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
 
