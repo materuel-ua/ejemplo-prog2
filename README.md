@@ -22,10 +22,13 @@ Proyecto de ejemplo de la asignatura Programación 2 (GIA) consistente en la ges
 * Exportará carnés de usuarios y fichas de libros en formato PDF (Alumno 5)
 * Emitirá informes en formato PDF de los libros actualmente en préstamo (Alumno 5)
 
-## Instalación
+## Instrucciones de instalación y ejecución
 * Editar las rutas en el fichero de configuración _config.py_
 * Establecer passwords de Flask y super-administrador en el fichero de configuración _config.py_
 * Ejecutar script _init.py_
+* Crear venv con el fichero _requirements.txt_
+* Ejecutar app Flask desde _main.py_
+* (opcional) Probar usando _exameple.py_ tras modificarlo adecuadamente.
 
 ## Posibles mejoras
 
