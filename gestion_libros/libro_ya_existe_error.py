@@ -10,6 +10,7 @@ Clases:
 
 from gestion_libros.libro import Libro
 
+
 class LibroYaExisteError(Exception):
     """
     Excepción personalizada para indicar que un libro ya existe en la colección.
@@ -24,6 +25,7 @@ class LibroYaExisteError(Exception):
     __init__(self, libro: Libro) -> None:
         Inicializa la excepción con el libro que ya existe.
     """
+
     def __init__(self, libro: Libro) -> None:
         """
         Inicializa la excepción con un mensaje que incluye el ISBN del libro que ya existe.

@@ -10,6 +10,7 @@ Clases:
 
 from gestion_usuarios.usuario import Usuario
 
+
 class Administrador(Usuario):
     """
     Clase que representa a un administrador, heredando de la clase Usuario.

@@ -8,6 +8,7 @@ Clases:
     - UsuarioYaExisteError: Excepción personalizada para usuarios que ya existen.
 """
 
+
 class UsuarioYaExisteError(Exception):
     """
     Excepción personalizada para indicar que un usuario ya existe en la colección.
@@ -22,6 +23,7 @@ class UsuarioYaExisteError(Exception):
     __init__(self, identificador: str) -> None:
         Inicializa la excepción con el identificador del usuario que ya existe.
     """
+
     def __init__(self, identificador: str) -> None:
         """
         Inicializa la excepción con un mensaje que incluye el identificador del usuario que ya existe.

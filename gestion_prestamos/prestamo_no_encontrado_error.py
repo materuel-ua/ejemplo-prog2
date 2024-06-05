@@ -8,6 +8,7 @@ Clases:
     - PrestamoNoEncontradoError: Excepción personalizada para préstamos no encontrados.
 """
 
+
 class PrestamoNoEncontradoError(Exception):
     """
     Excepción personalizada para indicar que un préstamo no se ha encontrado en la colección.
@@ -22,6 +23,7 @@ class PrestamoNoEncontradoError(Exception):
     __init__(self, isbn: str) -> None:
         Inicializa la excepción con el ISBN del libro cuyo préstamo no se ha encontrado.
     """
+
     def __init__(self, isbn: str) -> None:
         """
         Inicializa la excepción con un mensaje que incluye el ISBN del libro cuyo préstamo no se ha encontrado.

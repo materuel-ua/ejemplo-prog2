@@ -8,6 +8,7 @@ Clases:
     - LibroNoDisponibleError: Excepción personalizada para libros no disponibles.
 """
 
+
 class LibroNoDisponibleError(Exception):
     """
     Excepción personalizada para indicar que un libro no está disponible para préstamo.
@@ -22,6 +23,7 @@ class LibroNoDisponibleError(Exception):
     __init__(self, isbn: str) -> None:
         Inicializa la excepción con el ISBN del libro que no está disponible.
     """
+
     def __init__(self, isbn: str) -> None:
         """
         Inicializa la excepción con un mensaje que incluye el ISBN del libro que no está disponible.

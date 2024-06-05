@@ -8,6 +8,7 @@ Clases:
     - LibroNoEncontradoError: Excepción personalizada para libros no encontrados.
 """
 
+
 class LibroNoEncontradoError(Exception):
     """
     Excepción personalizada para indicar que un libro no se ha encontrado en la colección.
@@ -22,6 +23,7 @@ class LibroNoEncontradoError(Exception):
     __init__(self, isbn: str) -> None:
         Inicializa la excepción con el ISBN del libro no encontrado.
     """
+
     def __init__(self, isbn: str) -> None:
         """
         Inicializa la excepción con un mensaje que incluye el ISBN del libro no encontrado.
