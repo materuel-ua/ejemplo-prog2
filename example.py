@@ -10,8 +10,10 @@ Contiene las siguientes funciones:
 
 import requests
 
-URL = 'http://127.0.0.1:5000/'
+URL_remota = 'http://miji.pythonanywhere.com'
+URL_local = 'http://127.0.0.1:5000'
 
+URL = URL_remota
 
 def main() -> None:
     """

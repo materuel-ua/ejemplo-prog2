@@ -50,10 +50,11 @@ from gestion_usuarios.usuario import Usuario
 from gestion_usuarios.usuario_no_encontrado_error import UsuarioNoEncontradoError
 from gestion_usuarios.usuario_ya_existe_error import UsuarioYaExisteError
 from informes.generador_informes import generar_carne, generar_prestamos, generar_ficha
+from config import PATH_IMAGENES, JWT_SECRET_KEY
 
 app = Flask(__name__)
-app.config["JWT_SECRET_KEY"] = "QrQc3luSLOS9APc"
-app.config["UPLOAD_FOLDER"] = "images"
+app.config["JWT_SECRET_KEY"] = JWT_SECRET_KEY
+app.config["UPLOAD_FOLDER"] = PATH_IMAGENES
 jwt = JWTManager(app)
 
 

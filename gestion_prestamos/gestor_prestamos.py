@@ -21,8 +21,7 @@ from typing import Dict, List, Optional
 from gestion_prestamos.devolucion_invalida_error import DevolucionInvalidaError
 from gestion_prestamos.prestamo_no_encontrado_error import PrestamoNoEncontradoError
 from gestion_prestamos.libro_no_disponible_error import LibroNoDisponibleError
-
-PATH_PRESTAMOS = 'data/prestamos.pickle'
+from config import PATH_DATA
 
 
 class GestorPrestamos:
@@ -62,7 +61,7 @@ class GestorPrestamos:
             Diccionario con los préstamos cargados desde el archivo.
         """
         try:
-            with open(PATH_PRESTAMOS, 'rb') as f:
+            with open(PATH_DATA, 'rb') as f:
                 return pickle.load(f)
         except FileNotFoundError:
             return {}
@@ -71,7 +70,7 @@ class GestorPrestamos:
         """
         Guarda la colección de préstamos en un archivo.
         """
-        with open(PATH_PRESTAMOS, 'wb') as f:
+        with open(PATH_DATA, 'wb') as f:
             pickle.dump(self.__prestamos, f)
 
     def buscar_prestamos(self, isbn: str) -> Optional[dict]:

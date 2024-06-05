@@ -21,9 +21,7 @@ from typing import List, Optional
 from gestion_libros.libro_ya_existe_error import LibroYaExisteError
 from gestion_libros.libro_no_encontrado_error import LibroNoEncontradoError
 from gestion_libros.libro import Libro
-
-PATH_LIBROS = 'data/libros.pickle'
-PATH_CARATULAS = 'images/'
+from config import PATH_DATA, PATH_IMAGENES
 
 
 class GestorLibros:
@@ -61,7 +59,7 @@ class GestorLibros:
             Lista de libros cargados desde el archivo.
         """
         try:
-            with open(PATH_LIBROS, 'rb') as f:
+            with open(PATH_DATA, 'rb') as f:
                 return pickle.load(f)
         except FileNotFoundError:
             return []
@@ -70,7 +68,7 @@ class GestorLibros:
         """
         Guarda la colección de libros en un archivo.
         """
-        with open(PATH_LIBROS, 'wb') as f:
+        with open(PATH_DATA, 'wb') as f:
             pickle.dump(self.__libros, f)
 
     def buscar_libro(self, isbn: str) -> Optional[Libro]:
@@ -210,6 +208,6 @@ class GestorLibros:
         Optional[str]
             Ruta al archivo de la carátula si se encuentra, None en caso contrario.
         """
-        for infile in glob.glob(os.path.join(PATH_CARATULAS, isbn + '.*')):
+        for infile in glob.glob(os.path.join(PATH_IMAGENES, isbn + '.*')):
             return infile
         return None

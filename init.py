@@ -10,8 +10,8 @@ Contiene las siguientes funciones:
 import os
 from gestion_usuarios.gestor_usuarios import GestorUsuarios
 from gestion_usuarios.administrador import Administrador
-
-ADMIN_PASSWORD = 'UAgCZ646D5l9Vbl'
+from config import PATH_IMAGENES, PATH_DATA, SUPER_ADMIN_PASSWORD
+from gestion_usuarios.usuario_ya_existe_error import UsuarioYaExisteError
 
 
 def main() -> None:
@@ -27,21 +27,24 @@ def main() -> None:
     """
     # Crear directorio 'data' si no existe
     try:
-        os.mkdir('data')
+        os.mkdir(PATH_DATA)
     except OSError as error:
         print(f"Error al crear el directorio 'data': {error}")
 
     # Crear directorio 'images' si no existe
     try:
-        os.mkdir('images')
+        os.mkdir(PATH_IMAGENES)
     except OSError as error:
         print(f"Error al crear el directorio 'images': {error}")
 
     # Inicializar el gestor de usuarios y añadir un usuario administrador
-    gu = GestorUsuarios()
-    gu.add_usuario(Administrador('0', 'admin', 'admin', 'admin',
-                                 gu.hash_password(ADMIN_PASSWORD)))
-    gu.guardar_usuarios()
+    try:
+        gu = GestorUsuarios()
+        gu.add_usuario(Administrador('0', 'admin', 'admin', 'admin',
+                                     gu.hash_password(SUPER_ADMIN_PASSWORD)))
+        gu.guardar_usuarios()
+    except UsuarioYaExisteError:
+        print('El usuario super-administrador del sistema ya está creado')
 
 
 if __name__ == '__main__':
