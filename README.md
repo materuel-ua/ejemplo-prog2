@@ -28,3 +28,4 @@ Proyecto de ejemplo de la asignatura Programación 2 (GIA) consistente en la ges
 * Posibilidad de que un libro tenga más de un autor
 * Permitir más tipos de publicaciones además de libros (artículos científicos, actas de congresos, informes, etc.)
 * Controlar paginación en informe de préstamos en PDF y mejorar maquetación
+* Sustituir almacenamiento en ficheros binarios por base de datos SQL / NoSQL

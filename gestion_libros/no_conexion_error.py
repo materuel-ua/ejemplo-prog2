@@ -9,6 +9,7 @@ Clases:
     - NoConexionError: Excepción personalizada para problemas de conexión.
 """
 
+
 class NoConexionError(Exception):
     """
     Excepción personalizada para indicar que no se ha podido obtener la información de un libro debido a problemas de conexión.
@@ -23,6 +24,7 @@ class NoConexionError(Exception):
     __init__(self, isbn: str) -> None:
         Inicializa la excepción con el ISBN del libro cuya información no se ha podido obtener.
     """
+
     def __init__(self, isbn: str) -> None:
         """
         Inicializa la excepción con un mensaje que incluye el ISBN del libro cuya información no se ha podido obtener.

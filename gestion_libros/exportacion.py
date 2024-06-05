@@ -23,6 +23,7 @@ from typing import List
 
 try:
     import zlib
+
     compression = zipfile.ZIP_DEFLATED
 except ImportError:
     compression = zipfile.ZIP_STORED

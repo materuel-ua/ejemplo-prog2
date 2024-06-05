@@ -8,6 +8,7 @@ Clases:
     - UsuarioNoEncontradoError: Excepción personalizada para usuarios no encontrados.
 """
 
+
 class UsuarioNoEncontradoError(Exception):
     """
     Excepción personalizada para indicar que un usuario no se ha encontrado en la colección.
@@ -22,6 +23,7 @@ class UsuarioNoEncontradoError(Exception):
     __init__(self, identificador: str) -> None:
         Inicializa la excepción con el identificador del usuario no encontrado.
     """
+
     def __init__(self, identificador: str) -> None:
         """
         Inicializa la excepción con un mensaje que incluye el identificador del usuario no encontrado.

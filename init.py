@@ -13,6 +13,7 @@ from gestion_usuarios.administrador import Administrador
 
 ADMIN_PASSWORD = 'UAgCZ646D5l9Vbl'
 
+
 def main() -> None:
     """
     Función principal que inicializa el sistema de gestión de usuarios y directorios necesarios.
@@ -41,6 +42,7 @@ def main() -> None:
     gu.add_usuario(Administrador('0', 'admin', 'admin', 'admin',
                                  gu.hash_password(ADMIN_PASSWORD)))
     gu.guardar_usuarios()
+
 
 if __name__ == '__main__':
     main()
