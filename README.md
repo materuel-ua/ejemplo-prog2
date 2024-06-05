@@ -28,7 +28,7 @@ Proyecto de ejemplo de la asignatura Programación 2 (GIA) consistente en la ges
 * Ejecutar script _init.py_
 * Crear venv con el fichero _requirements.txt_
 * Ejecutar app Flask desde _main.py_
-* (opcional) Probar usando _exameple.py_ tras modificarlo adecuadamente.
+* (opcional) Probar usando_example.py_ tras modificarlo adecuadamente, mientras se mantiene _main.py_ en ejecución.
 
 ## Posibles mejoras
 
