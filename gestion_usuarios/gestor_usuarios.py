@@ -22,8 +22,9 @@ from typing import List, Optional
 from gestion_usuarios.usuario_no_encontrado_error import UsuarioNoEncontradoError
 from gestion_usuarios.usuario_ya_existe_error import UsuarioYaExisteError
 from gestion_usuarios.usuario import Usuario
+from config import PATH_DATA
 
-PATH_USUARIOS = 'data/usuarios.pickle'
+PATH_USUARIOS = f'{PATH_DATA}/usuarios.pickle'
 
 
 class GestorUsuarios:
