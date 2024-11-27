@@ -37,3 +37,83 @@ Proyecto de ejemplo de la asignatura Programación 2 (GIA) consistente en la ges
 * Permitir más tipos de publicaciones además de libros (artículos científicos, actas de congresos, informes, etc.)
 * Controlar paginación en informe de préstamos en PDF y mejorar maquetación
 * Sustituir almacenamiento en ficheros binarios por base de datos SQL / NoSQL
+
+## Resumen de la API
+
+### Autenticación
+* Login
+  * GET /login
+  * Parámetros: identificador, password
+
+### Gestión de Usuarios
+* Añadir un usuario
+  * POST /usuario
+  * Requiere JWT (Administrador)
+  * Parámetros: identificador, nombre, apellido1, apellido2, password, administrador
+* Actualizar usuario
+  * PUT /usuario
+  * Requiere JWT
+  * Parámetros: nombre, apellido1, apellido2
+* Obtener información de usuario
+  * GET /usuario
+  * Requiere JWT
+  * Parámetros: identificador (opcional)
+* Eliminar un usuario
+  * DELETE /usuario
+  * Requiere JWT (Administrador)
+  * Parámetros: identificador
+* Cambiar contraseña
+  * PUT /cambiar_password
+  * Requiere JWT
+  * Parámetros: old_password, new_password
+
+### Gestión de Libros
+* Añadir un libro
+  * POST /libro
+  * Requiere JWT (Administrador)
+  * Parámetros: isbn, titulo, autor, editorial, anyo
+* Actualizar un libro
+  * PUT /libro
+  * Requiere JWT (Administrador)
+  * Parámetros: isbn, titulo, autor, editorial, anyo
+* Obtener información de un libro
+  * GET /libro
+  * Requiere JWT (opcional)
+  * Parámetros: isbn
+* Eliminar un libro
+  * DELETE /libro
+  * Requiere JWT (Administrador)
+  * Parámetros: isbn
+* Subir carátula de un libro
+  * POST /caratula
+  * Requiere JWT (Administrador)
+  * Parámetros: isbn, Archivo en form-data
+* Descargar carátula de un libro
+  * GET /caratula
+  * Parámetros: isbn
+
+### Gestión de Préstamos
+* Añadir un préstamo
+  * POST /prestamo
+  * Requiere JWT (Administrador)
+  * Parámetros: isbn, identificador
+* Eliminar un préstamo
+  * DELETE /prestamo
+  * Requiere JWT
+  * Parámetros: isbn
+
+### Informes y Exportación
+* Exportar datos de la biblioteca
+  * GET /exportar
+* Descargar carné de usuario
+  * GET /carne
+  * Requiere JWT
+* Descargar ficha de libro
+  * GET /ficha
+  * Parámetros: isbn
+* Descargar informe de préstamos
+  * GET /informe_prestamos
+  * Requiere JWT (Administrador)
+* Obtener referencia de un libro
+  * GET /referencia
+  * Parámetros: isbn, formato

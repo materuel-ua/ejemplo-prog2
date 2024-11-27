@@ -8,9 +8,15 @@ Contiene las siguientes funciones:
 """
 
 import os
+
+from gestion_libros.gestor_libros import GestorLibros
+from gestion_libros.libro import Libro
+from gestion_libros.libro_ya_existe_error import LibroYaExisteError
+from gestion_prestamos.gestor_prestamos import GestorPrestamos
+from gestion_prestamos.libro_no_disponible_error import LibroNoDisponibleError
 from gestion_usuarios.gestor_usuarios import GestorUsuarios
-from gestion_usuarios.administrador import Administrador
-from config import PATH_IMAGENES, PATH_DATA, SUPER_ADMIN_PASSWORD
+from gestion_usuarios.administrador import Administrador, Usuario
+from config import PATH_IMAGENES, PATH_DATA, SUPER_ADMIN_PASSWORD, USER_PASSWORD
 from gestion_usuarios.usuario_ya_existe_error import UsuarioYaExisteError
 
 
@@ -31,20 +37,39 @@ def main() -> None:
     except OSError as error:
         print(f"Error al crear el directorio 'data': {error}")
 
-    # Crear directorio 'images' si no existe
+    # Inicializar el gestor de usuarios y añadir un usuario administrador y otro normal
+    gu = GestorUsuarios()
     try:
-        os.mkdir(PATH_IMAGENES)
-    except OSError as error:
-        print(f"Error al crear el directorio 'images': {error}")
-
-    # Inicializar el gestor de usuarios y añadir un usuario administrador
-    try:
-        gu = GestorUsuarios()
         gu.add_usuario(Administrador('0', 'admin', 'admin', 'admin',
                                      gu.hash_password(SUPER_ADMIN_PASSWORD)))
         gu.guardar_usuarios()
     except UsuarioYaExisteError:
         print('El usuario super-administrador del sistema ya está creado')
+
+    try:
+        gu.add_usuario(Usuario('1', 'user', 'user', 'user',
+                               gu.hash_password(USER_PASSWORD)))
+        gu.guardar_usuarios()
+    except UsuarioYaExisteError:
+        print('El usuario básico del sistema ya está creado')
+
+    # Inicializar el gestor de libros y añadir un libro de ejemplo
+    gl = GestorLibros()
+    try:
+        gl.add_libro(
+            Libro('978-1491946008', 'Fluent Python: Clear, Concise, and Effective Programming', 'Luciano Ramalho',
+                  "O'Reilly Media", '2015'))
+        gl.guardar_libros()
+    except LibroYaExisteError:
+        print('El libro de ejemplo ya está creado')
+
+    # Inicializar el gestor de préstamos y prestar el libro de ejemplo al usuario básico del sistema
+    gp = GestorPrestamos()
+    try:
+        gp.add_prestamo('978-1491946008','1')
+        gp.guardar_prestamos()
+    except LibroNoDisponibleError:
+        print('El libro de ejemplo no puede ser prestado')
 
 
 if __name__ == '__main__':

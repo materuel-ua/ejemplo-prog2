@@ -23,6 +23,8 @@ from gestion_libros.libro_no_encontrado_error import LibroNoEncontradoError
 from gestion_libros.libro import Libro
 from config import PATH_DATA, PATH_IMAGENES
 
+PATH_LIBROS = f'{PATH_DATA}libros.pickle'
+
 
 class GestorLibros:
     """
@@ -59,7 +61,7 @@ class GestorLibros:
             Lista de libros cargados desde el archivo.
         """
         try:
-            with open(PATH_DATA, 'rb') as f:
+            with open(PATH_LIBROS, 'rb') as f:
                 return pickle.load(f)
         except FileNotFoundError:
             return []
@@ -68,7 +70,7 @@ class GestorLibros:
         """
         Guarda la colección de libros en un archivo.
         """
-        with open(PATH_DATA, 'wb') as f:
+        with open(PATH_LIBROS, 'wb') as f:
             pickle.dump(self.__libros, f)
 
     def buscar_libro(self, isbn: str) -> Optional[Libro]:

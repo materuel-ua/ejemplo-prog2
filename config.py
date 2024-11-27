@@ -10,3 +10,4 @@ PATH_DATA = 'data/'
 # Contraseñas
 JWT_SECRET_KEY = 'QrQc3luSLOS9APc'
 SUPER_ADMIN_PASSWORD = 'UAgCZ646D5l9Vbl'
+USER_PASSWORD = 'prog2-ia'

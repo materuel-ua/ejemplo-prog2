@@ -23,6 +23,8 @@ from gestion_prestamos.prestamo_no_encontrado_error import PrestamoNoEncontradoE
 from gestion_prestamos.libro_no_disponible_error import LibroNoDisponibleError
 from config import PATH_DATA
 
+PATH_PRESTAMOS = f'{PATH_DATA}prestamos.pickle'
+
 
 class GestorPrestamos:
     """
@@ -61,7 +63,7 @@ class GestorPrestamos:
             Diccionario con los préstamos cargados desde el archivo.
         """
         try:
-            with open(PATH_DATA, 'rb') as f:
+            with open(PATH_PRESTAMOS, 'rb') as f:
                 return pickle.load(f)
         except FileNotFoundError:
             return {}
@@ -70,7 +72,7 @@ class GestorPrestamos:
         """
         Guarda la colección de préstamos en un archivo.
         """
-        with open(PATH_DATA, 'wb') as f:
+        with open(PATH_PRESTAMOS, 'wb') as f:
             pickle.dump(self.__prestamos, f)
 
     def buscar_prestamos(self, isbn: str) -> Optional[dict]:
