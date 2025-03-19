@@ -16,26 +16,21 @@ URL_local = 'http://127.0.0.1:5000'
 
 URL = URL_local
 
+
 def param(nombre, tipo, lon_min=0, is_password=False):
     valido = False
     out = None
     while not valido:
 
-        prompt = f'{nombre}'
-        if lon_min:
-            prompt += f' (Longitud mínima: {lon_min})'
-        prompt += ':'
+        prompt = f'{nombre}{' (Longitud mínima:' + str(lon_min) + '):' if lon_min else ':'}'
 
-        if not is_password:
-            out = input(prompt)
-        else:
-            out = getpass.getpass(prompt)
+        out = getpass.getpass(prompt) if is_password else input(prompt)
 
         if lon_min > len(out):
             print('Longitud menor que la requerida')
         else:
             try:
-                out=tipo(out)
+                out = tipo(out)
                 valido = True
             except TypeError:
                 print('El tipo de dato no es valido')
@@ -55,11 +50,15 @@ def main() -> None:
 
     while opcion != '0':
         print('1: Login')
+        print('2: Nuevo usuario')
+        print('3: Buscar usuario')
+        print('4: Nuevo libro')
         opcion = input('Opción: ')
         match opcion:
             case '1':
                 # Login
-                r = requests.get(f'{URL}/login?identificador={param('Identificador', str)}&password={param('Password', str, is_password=True)}')
+                r = requests.get(
+                    f'{URL}/login?identificador={param('Identificador', str)}&password={param('Contraseña', str, is_password=True)}')
                 print(r.status_code)
                 token = r.text
                 print(token)
@@ -67,22 +66,22 @@ def main() -> None:
             case '2':
                 # Crear usuario
                 r = requests.post(
-                    f'{URL}/usuario?identificador=12345&nombre=Miguel&apellido1=Teruel&apellido2=Martinez&password=zCWlAusK*7BfFy',
+                    f'{URL}/usuario?identificador={param('Identificador', str)}&nombre={param('Nombre', str)}&apellido1={param('Apellido 1', str)}&apellido2={param('Apellido 2', str)}&password={param('Contraseña', str, is_password=True)}',
                     headers={'Authorization': 'Bearer ' + token})
                 print(r.status_code)
                 print(r.text)
 
             case '3':
                 # Buscar usuario
-                r = requests.get(f'{URL}/usuario?identificador=12345', headers={'Authorization': 'Bearer ' + token})
+                r = requests.get(f'{URL}/usuario?identificador={param('Identificador', str)}', headers={'Authorization': 'Bearer ' + token})
                 print(r.status_code)
                 print(r.text)
 
             case '4':
                 # Crear libro
                 r = requests.post(
-                    f'{URL}/libro?isbn=9781492056355&titulo=Fluent Python 2nd Edition&autor=Luciano Ramalho&'
-                    f'editorial=O\'Reilly Media, Inc.&anyo=2022',
+                    f'{URL}/libro?isbn={param('ISBN', str, lon_min=10)}&titulo={param('Título', str)}&autor={param('Autor', str)}&'
+                    f'editorial={param('Editorial', str)}',
                     headers={'Authorization': 'Bearer ' + token})
                 print(r.status_code)
                 print(r.text)
