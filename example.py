@@ -53,6 +53,23 @@ def main() -> None:
         print('2: Nuevo usuario')
         print('3: Buscar usuario')
         print('4: Nuevo libro')
+        print('5: Buscar libro')
+        print('6: Nuevo préstamo')
+        print('8: Devolver libro')
+        print('9: Actualizar libro')
+        print('10: Eliminar libro')
+        print('11: Actualizar usuario')
+        print('12: Cambiar contraseña')
+        print('13: Eliminar usuario')
+        print('14: Subir carátula')
+        print('15: Bajar carátula')
+        print('16: Añadir libro por ISBN')
+        print('17: Exportar biblioteca')
+        print('18: Generar carné')
+        print('19: Generar ficha libro')
+        print('20: Generar informe de préstamos')
+        print('21: Generar referencia de libro')
+
         opcion = input('Opción: ')
         match opcion:
             case '1':
@@ -80,21 +97,20 @@ def main() -> None:
             case '4':
                 # Crear libro
                 r = requests.post(
-                    f'{URL}/libro?isbn={param('ISBN', str, lon_min=10)}&titulo={param('Título', str)}&autor={param('Autor', str)}&'
-                    f'editorial={param('Editorial', str)}',
+                    f'{URL}/libro?isbn={param('ISBN', str, lon_min=10)}&titulo={param('Título', str)}&autor={param('Autor', str)}&editorial={param('Editorial', str)}&anyo={param('Año', str)}',
                     headers={'Authorization': 'Bearer ' + token})
                 print(r.status_code)
                 print(r.text)
 
             case '5':
                 # Buscar libro
-                r = requests.get(f'{URL}/libro?isbn=9781492056355')
+                r = requests.get(f'{URL}/libro?isbn={param('ISBN', str, lon_min=10)}')
                 print(r.status_code)
                 print(r.text)
 
             case '6':
                 # Crear préstamo
-                r = requests.post(f'{URL}/prestamo?isbn=9781492056355&identificador=12345',
+                r = requests.post(f'{URL}/prestamo?isbn={param('ISBN', str, lon_min=10)}&identificador={param('Identificador', str)}',
                                   headers={'Authorization': 'Bearer ' + token})
                 print(r.status_code)
                 print(r.text)
@@ -108,7 +124,7 @@ def main() -> None:
 
             case '8':
                 # Devolver libro
-                r = requests.delete(f'{URL}/prestamo?isbn=9781492056355',
+                r = requests.delete(f'{URL}/prestamo?isbn={param('ISBN', str, lon_min=10)}',
                                     headers={'Authorization': 'Bearer ' + token})
                 print(r.status_code)
                 print(r.text)
@@ -116,55 +132,54 @@ def main() -> None:
             case '9':
                 # Actualizar libro
                 r = requests.put(
-                    f'{URL}/libro?isbn=9781492056355&titulo=Fluent Python 3rd Edition&autor=Luciano Ramalho&'
-                    f'editorial=O\'Reilly Media, Inc.&anyo=2022',
+                    f'{URL}/libro?isbn={param('ISBN', str, lon_min=10)}&titulo={param('Título', str)}&autor={param('Autor', str)}&editorial={param('Editorial', str)}&anyo=2022',
                     headers={'Authorization': 'Bearer ' + token})
                 print(r.status_code)
                 print(r.text)
 
             case '10':
                 # Eliminar libro
-                r = requests.delete(f'{URL}/libro?isbn=9781492056355', headers={'Authorization': 'Bearer ' + token})
+                r = requests.delete(f'{URL}/libro?isbn={param('ISBN', str, lon_min=10)}', headers={'Authorization': 'Bearer ' + token})
                 print(r.status_code)
                 print(r.text)
 
             case '11':
                 # Actualizar usuario
-                r = requests.put(f'{URL}/usuario?&nombre=Miguel Angel&apellido1=Teruel&apellido2=Martinez',
+                r = requests.put(f'{URL}/usuario?&nombre={param('Nombre', str)}&apellido1={param('Apellido 1', str)}&apellido2={param('Apellido 2', str)}',
                                  headers={'Authorization': 'Bearer ' + token})
                 print(r.status_code)
                 print(r.text)
 
             case '12':
                 # Cambiar contraseña
-                r = requests.put(f'{URL}/cambiar_password?old_password=zCWlAusK*7BfFy2&new_password=zCWlAusK*7BfFy2',
+                r = requests.put(f'{URL}/cambiar_password?old_password={param('Contraseña actual', str, is_password=True)}&new_password={param('Nueva contraseña', str, is_password=True)}',
                                  headers={'Authorization': 'Bearer ' + token})
                 print(r.status_code)
                 print(r.text)
 
             case '13':
                 # Eliminar usuario
-                r = requests.delete(f'{URL}/usuario?identificador=12345', headers={'Authorization': 'Bearer ' + token})
+                r = requests.delete(f'{URL}/usuario?identificador={param('Identificador', str)}', headers={'Authorization': 'Bearer ' + token})
                 print(r.status_code)
                 print(r.text)
 
             case '14':
                 # Subir carátula
-                r = requests.post(f'{URL}/caratula?isbn=9781492056355', headers={'Authorization': 'Bearer ' + token},
-                                  files={'file': open('fluent.jpg', 'rb')})
+                r = requests.post(f'{URL}/caratula?isbn={param('ISBN', str, lon_min=10)}', headers={'Authorization': 'Bearer ' + token},
+                                  files={'file': open(f'{param('Ruta completa al fichero)', str)}', 'rb')})
                 print(r.status_code)
                 print(r.text)
 
             case '15':
                 # Bajar carátula
-                r = requests.get(f'{URL}/caratula?isbn=9781492056355')
+                r = requests.get(f'{URL}/caratula?isbn={param('ISBN', str, lon_min=10)}')
                 print(r.status_code)
                 if r.status_code == 200:
                     open("caratula.jpg", "wb").write(r.content)
 
             case '16':
                 # Añadir libro por ISBN
-                r = requests.post(f'{URL}/libro?isbn=9780545798631', headers={'Authorization': 'Bearer ' + token})
+                r = requests.post(f'{URL}/libro?isbn={param('ISBN', str, lon_min=10)}', headers={'Authorization': 'Bearer ' + token})
                 print(r.status_code)
                 print(r.text)
 
@@ -184,7 +199,7 @@ def main() -> None:
 
             case '19':
                 # Generar ficha
-                r = requests.get(f'{URL}/ficha?isbn=9781589770089')
+                r = requests.get(f'{URL}/ficha?isbn={param('ISBN', str, lon_min=10)}')
                 print(r.status_code)
                 if r.status_code == 200:
                     open("ficha.pdf", "wb").write(r.content)
@@ -198,7 +213,7 @@ def main() -> None:
 
             case '21':
                 # Generar referencia
-                r = requests.get(f'{URL}/referencia?isbn=9781589770089&formato=IEEE')
+                r = requests.get(f'{URL}/referencia?isbn={param('ISBN', str, lon_min=10)}&formato={param('Formato (APA, MLA, Chicago, Turabian, IEEE)', str)}')
                 print(r.status_code)
                 print(r.text)
 

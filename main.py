@@ -5,7 +5,7 @@ Este script proporciona una API RESTful para gestionar usuarios, libros y prést
 Utiliza JWT para la autenticación y autorización.
 
 Funciones principales:
-- Login de usuarios y administradores
+- Login y logout de usuarios y administradores
 - Gestión de usuarios (crear, actualizar, eliminar, obtener)
 - Gestión de libros (crear, actualizar, eliminar, obtener)
 - Gestión de préstamos (crear, eliminar)
