@@ -9,11 +9,38 @@ Contiene las siguientes funciones:
 """
 
 import requests
+import getpass
 
 URL_remota = 'http://miji.pythonanywhere.com'
 URL_local = 'http://127.0.0.1:5000'
 
-URL = URL_remota
+URL = URL_local
+
+def param(nombre, tipo, lon_min=0, is_password=False):
+    valido = False
+    out = None
+    while not valido:
+
+        prompt = f'{nombre}'
+        if lon_min:
+            prompt += f' (Longitud mínima: {lon_min})'
+        prompt += ':'
+
+        if not is_password:
+            out = input(prompt)
+        else:
+            out = getpass.getpass(prompt)
+
+        if lon_min > len(out):
+            print('Longitud menor que la requerida')
+        else:
+            try:
+                out=tipo(out)
+                valido = True
+            except TypeError:
+                print('El tipo de dato no es valido')
+    return out
+
 
 def main() -> None:
     """
@@ -27,11 +54,12 @@ def main() -> None:
     token: str = ''
 
     while opcion != '0':
+        print('1: Login')
         opcion = input('Opción: ')
         match opcion:
             case '1':
-                # Login superadmin
-                r = requests.get(f'{URL}/login?identificador=0&password=UAgCZ646D5l9Vbl')
+                # Login
+                r = requests.get(f'{URL}/login?identificador={param('Identificador', str)}&password={param('Password', str, is_password=True)}')
                 print(r.status_code)
                 token = r.text
                 print(token)
