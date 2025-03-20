@@ -34,6 +34,7 @@ import os
 import sqlite3
 from datetime import timedelta, datetime, timezone
 from typing import Union
+from zoneinfo import ZoneInfo
 
 from flask import Flask, request, jsonify, send_file, Response
 from flask_jwt_extended import (
@@ -106,7 +107,7 @@ def login() -> tuple[str, int]:
         response = "Usuario o contraseña incorrectos"
 
     # Guardar registro en un fichero de log
-    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    now = datetime.now(ZoneInfo("Europe/Madrid")).strftime("%Y-%m-%d %H:%M:%S")
     with open(PATH_LOG, "a", encoding="utf-8") as log_file:
         log_file.write(f"{now} | Login de usuario '{identificador}' - {status_msg}\n")
 
@@ -165,7 +166,7 @@ def modify_token() -> tuple[str, int]:
 
         cursor.execute(
             "INSERT INTO token (jti, fecha) VALUES (?, ?)",
-            (jti, datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S'))
+            (jti, datetime.now(ZoneInfo("Europe/Madrid")).strftime('%Y-%m-%d %H:%M:%S'))
         )
 
         conn.commit()

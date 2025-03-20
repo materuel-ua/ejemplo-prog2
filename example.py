@@ -15,7 +15,7 @@ URL_remota = 'http://materuel.pythonanywhere.com'
 URL_local = 'http://127.0.0.1:5000'
 
 # Elegir la URL a usar según sea local o remota
-URL = URL_local
+URL = URL_remota
 
 
 def param(
