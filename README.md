@@ -122,3 +122,6 @@ Proyecto de ejemplo de la asignatura Programación 2 (GIA) consistente en la ges
 * Obtener referencia de un libro
   * GET /referencia
   * Parámetros: isbn, formato
+* Descargar registro de inicios de sesión
+  * GET /log
+  * Requiere JWT (Administrador)
