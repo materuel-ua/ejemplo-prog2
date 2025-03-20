@@ -8,7 +8,7 @@ Contiene las siguientes funciones:
 """
 
 import os
-
+import sqlite3
 from gestion_libros.gestor_libros import GestorLibros
 from gestion_libros.libro import Libro
 from gestion_libros.libro_ya_existe_error import LibroYaExisteError
@@ -16,7 +16,7 @@ from gestion_prestamos.gestor_prestamos import GestorPrestamos
 from gestion_prestamos.libro_no_disponible_error import LibroNoDisponibleError
 from gestion_usuarios.gestor_usuarios import GestorUsuarios
 from gestion_usuarios.administrador import Administrador, Usuario
-from config import PATH_IMAGENES, PATH_DATA, SUPER_ADMIN_PASSWORD, USER_PASSWORD
+from config import PATH_IMAGENES, PATH_DATA, SUPER_ADMIN_PASSWORD, USER_PASSWORD, PATH_DB
 from gestion_usuarios.usuario_ya_existe_error import UsuarioYaExisteError
 
 
@@ -70,6 +70,23 @@ def main() -> None:
         gp.guardar_prestamos()
     except LibroNoDisponibleError:
         print('El libro de ejemplo no puede ser prestado')
+
+    # Conectar a la base de datos (o crearla si no existe)
+    conn = sqlite3.connect(PATH_DB)
+    cursor = conn.cursor()
+
+    # Crear la tabla 'token' si no existe
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS token (
+            jti TEXT PRIMARY KEY,
+            fecha DATETIME
+        )
+    ''')
+
+    # Confirmar cambios y cerrar conexión
+    conn.commit()
+    conn.close()
+    print("Base de datos y tabla 'token' creadas correctamente.")
 
 
 if __name__ == '__main__':

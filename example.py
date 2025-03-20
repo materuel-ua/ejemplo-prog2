@@ -7,6 +7,7 @@ Contiene las siguientes funciones:
     * main - muestra el menú para interactuar con la API RESTful
 
 """
+from typing import Any
 
 import requests
 import getpass
@@ -46,7 +47,7 @@ def main() -> None:
     None
     """
     opcion: str = ''
-    token: str = ''
+    token: Any[str, None] = ''
 
     while opcion != '0':
         print('1: Login')
@@ -55,6 +56,7 @@ def main() -> None:
         print('4: Nuevo libro')
         print('5: Buscar libro')
         print('6: Nuevo préstamo')
+        print('7: Logout')
         print('8: Devolver libro')
         print('9: Actualizar libro')
         print('10: Eliminar libro')
@@ -116,11 +118,12 @@ def main() -> None:
                 print(r.text)
 
             case '7':
-                # Login usuario
-                r = requests.get(f'{URL}/login?identificador=12345&password=zCWlAusK*7BfFy')
+                # Logout usuario
+                r = requests.delete(f'{URL}/logout',
+                                 headers={'Authorization': 'Bearer ' + token})
                 print(r.status_code)
-                token = r.text
-                print(token)
+                print(r.text)
+                token = None
 
             case '8':
                 # Devolver libro

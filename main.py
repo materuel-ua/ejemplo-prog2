@@ -31,8 +31,11 @@ Ejemplo de uso:
 """
 
 import os
+import sqlite3
+from datetime import timedelta, datetime, timezone
+
 from flask import Flask, request, jsonify, send_file
-from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
+from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity, get_jwt
 
 from gestion_libros import exportacion
 from gestion_libros.gestor_libros import GestorLibros
@@ -50,10 +53,12 @@ from gestion_usuarios.usuario import Usuario
 from gestion_usuarios.usuario_no_encontrado_error import UsuarioNoEncontradoError
 from gestion_usuarios.usuario_ya_existe_error import UsuarioYaExisteError
 from informes.generador_informes import generar_carne, generar_prestamos, generar_ficha
-from config import PATH_IMAGENES, JWT_SECRET_KEY
+from config import PATH_IMAGENES, JWT_SECRET_KEY, PATH_DB
 
+ACCESS_EXPIRES = timedelta(hours=1) # Los tokens caducan en una hora
 app = Flask(__name__)
 app.config["JWT_SECRET_KEY"] = JWT_SECRET_KEY
+app.config["JWT_ACCESS_TOKEN_EXPIRES"] = ACCESS_EXPIRES
 app.config["UPLOAD_FOLDER"] = PATH_IMAGENES
 jwt = JWTManager(app)
 
@@ -78,6 +83,41 @@ def login() -> tuple[str, int]:
         return create_access_token(identity=identificador), 200
     else:
         return 'Usuario o contraseña incorrectos', 401
+
+@jwt.token_in_blocklist_loader
+def check_if_token_revoked(jwt_header, jwt_payload: dict) -> bool:
+    jti = jwt_payload["jti"]
+    # token =
+
+    # Conectar a la base de datos
+    conn = sqlite3.connect(PATH_DB)
+    cursor = conn.cursor()
+
+    # Ejecutar la consulta
+    cursor.execute("SELECT jti FROM token WHERE jti = ?", (jti,))
+    token = cursor.fetchone()
+
+    conn.close()
+    return token is not None
+
+@app.route("/logout", methods=["DELETE"])
+@jwt_required()
+def modify_token():
+    jti = get_jwt()["jti"]
+
+    try:
+        conn = sqlite3.connect(PATH_DB)
+        cursor = conn.cursor()
+
+        cursor.execute("""
+                INSERT INTO token (jti, fecha) VALUES (?, ?)
+            """, (jti, datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S')))
+
+        conn.commit()
+        conn.close()
+        return jsonify(msg="JWT revocado"), 200
+    except sqlite3.IntegrityError:
+        return "Error: El token ya existe en la base de datos.", 409
 
 
 @app.route('/usuario', methods=['POST'])
