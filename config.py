@@ -7,6 +7,7 @@ Script de configuiración de rutas de almacenamiento
 PATH_IMAGENES = 'images/'
 PATH_DATA = 'data/'
 PATH_DB = f'{PATH_DATA}/tokens.db'
+PATH_LOG = f'{PATH_DATA}/login.log'
 
 # Contraseñas
 JWT_SECRET_KEY = 'QrQc3luSLOS9APc'

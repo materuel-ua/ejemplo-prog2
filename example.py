@@ -100,6 +100,7 @@ def main() -> None:
         print("19: Generar carné de usuario")
         print("20: Generar ficha de libro")
         print("21: Generar referencia del libro")
+        print("22: Descarga registro de inicios de sesión")
         print("0:  Salir")
         opcion = input("Opción: ")
 
@@ -333,6 +334,18 @@ def main() -> None:
                 )
                 print(r.status_code)
                 print(r.text)
+
+
+            case '22':
+                # 22: Descarga registro de inicios de sesión
+                r = requests.get(
+                    f"{URL}/log", headers={'Authorization': 'Bearer ' + (token if token else '')}
+                )
+                print(r.status_code)
+                if r.status_code == 200:
+                    with open("login.log", "wb") as f:
+                        f.write(r.content)
+                    print('Inicios de sesión descargados como "login.log".')
 
             case '0':
                 # Salir

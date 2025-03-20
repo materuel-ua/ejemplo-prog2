@@ -33,8 +33,9 @@ Ejemplo de uso:
 import os
 import sqlite3
 from datetime import timedelta, datetime, timezone
+from typing import Union
 
-from flask import Flask, request, jsonify, send_file
+from flask import Flask, request, jsonify, send_file, Response
 from flask_jwt_extended import (
     JWTManager, create_access_token, jwt_required,
     get_jwt_identity, get_jwt
@@ -59,7 +60,7 @@ from gestion_usuarios.usuario_no_encontrado_error import UsuarioNoEncontradoErro
 from gestion_usuarios.usuario_ya_existe_error import UsuarioYaExisteError
 
 from informes.generador_informes import generar_carne, generar_prestamos, generar_ficha
-from config import PATH_IMAGENES, JWT_SECRET_KEY, PATH_DB
+from config import PATH_IMAGENES, JWT_SECRET_KEY, PATH_DB, PATH_LOG
 
 ACCESS_EXPIRES = timedelta(hours=1)  # Los tokens caducan en una hora
 app = Flask(__name__)
@@ -79,6 +80,9 @@ def login() -> tuple[str, int]:
     genera y retorna un token JWT junto con el código de estado 200. Si no,
     se retorna un mensaje de error y el código de estado 401.
 
+    Además, guarda un registro en un fichero de texto para cada intento de login,
+    indicando la fecha/hora, el usuario y si tuvo éxito o fue fallido.
+
     Returns
     -------
     tuple[str, int]
@@ -89,12 +93,24 @@ def login() -> tuple[str, int]:
     password = request.args.get('password')
 
     gu = GestorUsuarios()
-
     u = gu.buscar_usuario(identificador)
+
+    # Verificación de credenciales
     if u and u.hashed_password == gu.hash_password(password):
-        return create_access_token(identity=identificador), 200
+        status_msg = "Éxito"
+        status_code = 200
+        response = create_access_token(identity=identificador)
     else:
-        return 'Usuario o contraseña incorrectos', 401
+        status_msg = "Fallido"
+        status_code = 401
+        response = "Usuario o contraseña incorrectos"
+
+    # Guardar registro en un fichero de log
+    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    with open(PATH_LOG, "a", encoding="utf-8") as log_file:
+        log_file.write(f"{now} | Login de usuario '{identificador}' - {status_msg}\n")
+
+    return response, status_code
 
 
 @jwt.token_in_blocklist_loader
@@ -757,6 +773,27 @@ def get_referencia() -> tuple[object, int]:
     else:
         return f'Libro con ISBN {isbn} no encontrado', 404
 
+@app.route('/log', methods=['GET'])
+@jwt_required()
+def bajar_log() -> tuple[object, int]:
+    """
+    Descarga el fichero de registro (log) de los inicios de sesión del sistema.
+
+    Solo los usuarios con privilegios de administrador pueden descargar el log.
+    Si el usuario no es administrador, se devuelve un mensaje de error y el código
+    de estado 403.
+
+    Returns
+    -------
+    tuple[Union[Response, str], int]
+        - (Response, 200) : El fichero de log si el usuario es administrador.
+        - (str, 403)      : Mensaje de error si el usuario no es administrador.
+    """
+    gu = GestorUsuarios()
+    if not isinstance(gu.buscar_usuario(get_jwt_identity()), Administrador):
+        return 'Solo los administradores pueden descargar el log', 403
+
+    return send_file(PATH_LOG), 200
 
 if __name__ == '__main__':
     app.run(debug=True)

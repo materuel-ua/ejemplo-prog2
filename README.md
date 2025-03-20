@@ -21,6 +21,7 @@ Proyecto de ejemplo de la asignatura Programación 2 (GIA) consistente en la ges
 * Usará la API de Google Books para obtener información sobre un libro en base a su ISBN (Alumno 4)
 * Exportará carnés de usuarios y fichas de libros en formato PDF (Alumno 5)
 * Emitirá informes en formato PDF de los libros actualmente en préstamo (Alumno 5)
+* Guardará un registro de todos los usuarios que inicien sesión en el sistema (Alumnos)
 
 ## Instrucciones de instalación y ejecución
 * Editar las rutas en el fichero de configuración _config.py_
@@ -44,6 +45,10 @@ Proyecto de ejemplo de la asignatura Programación 2 (GIA) consistente en la ges
 * Login
   * GET /login
   * Parámetros: identificador, password
+
+* Logout
+  * DELETE /logout
+  * Requiere JWT
 
 ### Gestión de Usuarios
 * Añadir un usuario
