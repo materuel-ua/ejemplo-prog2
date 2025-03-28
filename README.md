@@ -52,21 +52,23 @@ Proyecto de ejemplo de la asignatura Programación 2 (GIA) consistente en la ges
 
 ### Gestión de Usuarios
 * Añadir un usuario
-  * POST /usuario
+  * POST /usuario/identificador
   * Requiere JWT (Administrador)
-  * Parámetros: identificador, nombre, apellido1, apellido2, password, administrador
+  * Parámetros: nombre, apellido1, apellido2, password, administrador
 * Actualizar usuario
   * PUT /usuario
   * Requiere JWT
   * Parámetros: nombre, apellido1, apellido2
-* Obtener información de usuario
+* Obtener información un usuario
+  * GET /usuario/identificador
+  * Requiere JWT
+  * Parámetros:  (opcional)
+* Obtener información del usuario actual
   * GET /usuario
   * Requiere JWT
-  * Parámetros: identificador (opcional)
 * Eliminar un usuario
-  * DELETE /usuario
+  * DELETE /usuario/identificador
   * Requiere JWT (Administrador)
-  * Parámetros: identificador
 * Cambiar contraseña
   * PUT /cambiar_password
   * Requiere JWT
@@ -74,38 +76,34 @@ Proyecto de ejemplo de la asignatura Programación 2 (GIA) consistente en la ges
 
 ### Gestión de Libros
 * Añadir un libro
-  * POST /libro
+  * POST /libro/isbn
   * Requiere JWT (Administrador)
-  * Parámetros: isbn, titulo, autor, editorial, anyo
+  * Parámetros: titulo, autor, editorial, anyo
 * Actualizar un libro
-  * PUT /libro
+  * PUT /libro/isbn
   * Requiere JWT (Administrador)
-  * Parámetros: isbn, titulo, autor, editorial, anyo
+  * Parámetros: titulo, autor, editorial, anyo
 * Obtener información de un libro
-  * GET /libro
+  * GET /libro/isbn
   * Requiere JWT (opcional)
-  * Parámetros: isbn
 * Eliminar un libro
-  * DELETE /libro
+  * DELETE /libro/isbn
   * Requiere JWT (Administrador)
-  * Parámetros: isbn
 * Subir carátula de un libro
-  * POST /caratula
+  * POST /caratula/sibn
   * Requiere JWT (Administrador)
-  * Parámetros: isbn, Archivo en form-data
+  * Parámetros: Archivo en form-data
 * Descargar carátula de un libro
-  * GET /caratula
-  * Parámetros: isbn
+  * GET /caratula/isbn
 
 ### Gestión de Préstamos
 * Añadir un préstamo
-  * POST /prestamo
+  * POST /prestamo/isbn
   * Requiere JWT (Administrador)
-  * Parámetros: isbn, identificador
+  * Parámetros: identificador
 * Eliminar un préstamo
-  * DELETE /prestamo
+  * DELETE /prestamo/isbn
   * Requiere JWT
-  * Parámetros: isbn
 
 ### Informes y Exportación
 * Exportar datos de la biblioteca
@@ -114,14 +112,13 @@ Proyecto de ejemplo de la asignatura Programación 2 (GIA) consistente en la ges
   * GET /carne
   * Requiere JWT
 * Descargar ficha de libro
-  * GET /ficha
-  * Parámetros: isbn
+  * GET /ficha/isbn
 * Descargar informe de préstamos
   * GET /informe_prestamos
   * Requiere JWT (Administrador)
 * Obtener referencia de un libro
-  * GET /referencia
-  * Parámetros: isbn, formato
+  * GET /referencia/isbn
+  * Parámetros: formato
 * Descargar registro de inicios de sesión
   * GET /log
   * Requiere JWT (Administrador)
