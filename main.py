@@ -175,9 +175,9 @@ def modify_token() -> tuple[str, int]:
         return "Error: El token ya existe en la base de datos.", 409
 
 
-@app.route('/usuario', methods=['POST'])
+@app.route('/usuario/<string:identificador>', methods=['POST'])
 @jwt_required()
-def add_usuario() -> tuple[str, int]:
+def add_usuario(identificador: str) -> tuple[str, int]:
     """
     Añade un nuevo usuario al sistema. Solo los administradores pueden realizar esta acción.
 
@@ -200,7 +200,6 @@ def add_usuario() -> tuple[str, int]:
     if not isinstance(gu.buscar_usuario(current_user), Administrador):
         return 'Solo los administradores pueden crear usuarios', 403
 
-    identificador = request.args.get('identificador')
     nombre = request.args.get('nombre')
     apellido1 = request.args.get('apellido1')
     apellido2 = request.args.get('apellido2')
@@ -274,7 +273,31 @@ def update_usuario() -> tuple[str, int]:
 
 @app.route('/usuario', methods=['GET'])
 @jwt_required()
-def get_usuario() -> tuple[dict, int]:
+def get_usuario_actual() -> tuple[dict, int]:
+    """
+    Obtiene la información de un usuario.
+
+    Si el usuario autenticado no es administrador, solo puede obtener su propia información.
+    Si el usuario autenticado es administrador, puede obtener la información de otro usuario
+    pasando el argumento `identificador`. Si no se pasa `identificador`, se devolverá la información
+    del propio administrador.
+
+    Returns
+    -------
+    tuple[dict, int]
+        - 403: Si se intenta solicitar la información de otro usuario sin ser administrador.
+        - 404: Si el usuario consultado no existe.
+        - 200: Un diccionario JSON con la información del usuario solicitado (o del mismo usuario).
+    """
+    gu = GestorUsuarios()
+    current_user = gu.buscar_usuario(get_jwt_identity())
+    return jsonify(current_user.to_dict()), 200
+
+
+
+@app.route('/usuario/<string:identificador>', methods=['GET'])
+@jwt_required()
+def get_usuario(identificador) -> tuple[dict, int]:
     """
     Obtiene la información de un usuario.
 
@@ -295,18 +318,14 @@ def get_usuario() -> tuple[dict, int]:
 
     # No administrador
     if not isinstance(current_user, Administrador):
-        return jsonify(current_user.to_dict()), 403
+        return 'Solo los administrdores pueden mostrar información de otros usuarios', 403
     else:
-        identificador = request.args.get('identificador', '')
-        # Si no se especifica identificador, se retorna la info del propio admin con 403
-        if identificador == '':
-            return jsonify(current_user.to_dict()), 403
+        u = gu.buscar_usuario(identificador)
+        if u:
+            return jsonify(u.to_dict()), 200
         else:
-            u = gu.buscar_usuario(identificador)
-            if u:
-                return jsonify(u.to_dict()), 403
-            else:
-                return f'Usuario con identificador {identificador} no encontrado', 404
+            return f'Usuario con identificador {identificador} no encontrado', 404
+
 
 
 @app.route('/usuario', methods=['DELETE'])

@@ -6,16 +6,16 @@ Contiene las siguientes funciones:
 - param: Solicita un parámetro por consola, validando tipo y longitud mínima.
 - main: Muestra el menú para interactuar con la API RESTful.
 """
-
+import json
 from typing import Any, Union
 import requests
 import getpass
 
-URL_remota = 'http://materuel.pythonanywhere.com'
-URL_local = 'http://127.0.0.1:5000'
-
-# Elegir la URL a usar según sea local o remota
-URL = URL_local
+try:
+    URL = json.load(open('config.json'))['URL']
+except FileNotFoundError:
+    print('Fichero de configuración no encontrado')
+    exit(1)
 
 
 def param(
@@ -101,6 +101,8 @@ def main() -> None:
         print("20: Generar ficha de libro")
         print("21: Generar referencia del libro")
         print("22: Descarga registro de inicios de sesión")
+        print("23: Mostrar usuario actual")
+        print("24: Mostrar otro usuario")
         print("0:  Salir")
         opcion = input("Opción: ")
 
@@ -346,6 +348,22 @@ def main() -> None:
                     with open("login.log", "wb") as f:
                         f.write(r.content)
                     print('Inicios de sesión descargados como "login.log".')
+
+            case '23':
+                # 23: Mostrar usuario actual
+                r = requests.get(
+                    f"{URL}/usuario", headers={'Authorization': 'Bearer ' + (token if token else '')}
+                )
+                print(r.status_code)
+                print(r.text)
+
+            case '24':
+                # 24: Mostrar otro usuario
+                r = requests.get(
+                    f"{URL}/usuario/{param('Identificador', str)}", headers={'Authorization': 'Bearer ' + (token if token else '')}
+                )
+                print(r.status_code)
+                print(r.text)
 
             case '0':
                 # Salir
