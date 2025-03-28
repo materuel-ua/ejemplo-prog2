@@ -1,10 +1,11 @@
 """
 Script principal para la aplicación Flask de gestión de biblioteca.
 
-Este script proporciona una API RESTful para gestionar usuarios, libros y préstamos en una biblioteca.
+Proporciona una API RESTful para gestionar usuarios, libros y préstamos en una biblioteca.
 Utiliza JWT para la autenticación y autorización.
 
-Funciones principales:
+Funciones principales
+---------------------
 - Login y logout de usuarios y administradores
 - Gestión de usuarios (crear, actualizar, eliminar, obtener)
 - Gestión de libros (crear, actualizar, eliminar, obtener)
@@ -13,7 +14,8 @@ Funciones principales:
 - Generar y descargar informes, carnés y fichas de libros
 - Exportar datos de la biblioteca
 
-Dependencias:
+Dependencias
+------------
 - Flask
 - Flask-JWT-Extended
 - gestion_libros
@@ -21,19 +23,21 @@ Dependencias:
 - gestion_usuarios
 - informes
 
-Configuraciones:
+Configuraciones
+---------------
 - JWT_SECRET_KEY: Clave secreta para la generación de tokens JWT
 - UPLOAD_FOLDER: Carpeta para almacenar las carátulas de los libros
 
-Ejemplo de uso:
-    Ejecutar este módulo directamente para iniciar la aplicación Flask.
-    $ python main.py
+Ejemplo de uso
+--------------
+Para iniciar la aplicación Flask:
+>>> python main.py
 """
 
 import os
 import sqlite3
 from datetime import timedelta, datetime, timezone
-from typing import Union
+from typing import Union, Tuple, Dict, Any
 
 from flask import Flask, request, jsonify, send_file, Response
 from flask_jwt_extended import (
@@ -71,23 +75,24 @@ jwt = JWTManager(app)
 
 
 @app.route('/login', methods=['GET'])
-def login() -> tuple[str, int]:
+def login() -> Tuple[Union[str, Dict[str, Any]], int]:
     """
     Realiza el login de un usuario y genera un token JWT.
 
     Obtiene los parámetros `identificador` y `password` desde los argumentos
-    de la petición (request.args). Si las credenciales son correctas, se
-    genera y retorna un token JWT junto con el código de estado 200. Si no,
+    de la petición (request.args). Si las credenciales son correctas, se genera
+    y retorna un token JWT junto con el código de estado 200. En caso contrario,
     se retorna un mensaje de error y el código de estado 401.
 
-    Además, guarda un registro en un fichero de texto para cada intento de login,
-    indicando la fecha/hora, el usuario y si tuvo éxito o fue fallido.
+    Además, se registra en un fichero de log cada intento de inicio de sesión,
+    indicando fecha/hora, usuario y resultado.
 
     Returns
     -------
-    tuple[str, int]
-        - 200: Token JWT si las credenciales son correctas.
-        - 401: Mensaje de error si las credenciales son incorrectas.
+    Tuple[Union[str, Dict[str, Any]], int]
+        Un par (respuesta, código de estado). Si las credenciales son correctas,
+        la respuesta es el token JWT y el código 200. Si son incorrectas, la
+        respuesta es un mensaje de error y el código 401.
     """
     identificador = request.args.get('identificador')
     password = request.args.get('password')
@@ -114,19 +119,18 @@ def login() -> tuple[str, int]:
 
 
 @jwt.token_in_blocklist_loader
-def check_if_token_revoked(jwt_header: dict, jwt_payload: dict) -> bool:
+def check_if_token_revoked(jwt_header: Dict[str, Any], jwt_payload: Dict[str, Any]) -> bool:
     """
     Verifica si un token se encuentra revocado.
 
-    Esta función es llamada automáticamente por Flask-JWT-Extended en cada
-    petición que requiera autenticación. Comprueba en la base de datos si el
-    token (identificado por su JTI) ha sido agregado a la lista de tokens revocados.
+    Comprueba en la base de datos si el token (identificado por su JTI)
+    ha sido agregado a la lista de tokens revocados.
 
     Parameters
     ----------
-    jwt_header : dict
+    jwt_header : Dict[str, Any]
         Cabecera del token JWT.
-    jwt_payload : dict
+    jwt_payload : Dict[str, Any]
         Carga útil del token JWT, que incluye el JTI.
 
     Returns
@@ -145,18 +149,18 @@ def check_if_token_revoked(jwt_header: dict, jwt_payload: dict) -> bool:
 
 @app.route("/logout", methods=["DELETE"])
 @jwt_required()
-def modify_token() -> tuple[str, int]:
+def modify_token() -> Tuple[Response, int]:
     """
     Revoca el token JWT del usuario que realiza la solicitud, cerrando su sesión.
 
     Inserta el JTI del token en la tabla `token` de la base de datos para
-    indicarle a la aplicación que debe tratarlo como revocado en peticiones futuras.
+    marcarlo como revocado.
 
     Returns
     -------
-    tuple[str, int]
-        - 200: Si el token se revoca exitosamente.
-        - 409: Si el token ya existe en la base de datos.
+    Tuple[Response, int]
+        Un par (respuesta JSON, código de estado). Si el token se revoca
+        exitosamente, se retorna el código 200, o 409 si ya existía en la BD.
     """
     jti = get_jwt()["jti"]
     try:
@@ -177,25 +181,31 @@ def modify_token() -> tuple[str, int]:
 
 @app.route('/usuario/<string:identificador>', methods=['POST'])
 @jwt_required()
-def add_usuario(identificador: str) -> tuple[str, int]:
+def add_usuario(identificador: str) -> Tuple[str, int]:
     """
     Añade un nuevo usuario al sistema. Solo los administradores pueden realizar esta acción.
 
     Lee los datos del usuario (identificador, nombre, apellido1, apellido2, password)
-    desde los argumentos de la solicitud (request.args). Si el parámetro `administrador`
-    está en 'si', crea un Administrador (solamente el superadministrador, identificador "0",
-    puede realizar esa acción); en caso contrario, crea un Usuario normal.
+    desde los argumentos de la solicitud (request.args).
+    - Si el parámetro `administrador` está en 'si', crea un Administrador
+      (solamente el superadministrador, identificador "0", puede hacerlo).
+    - En caso contrario, crea un Usuario normal.
+
+    Parameters
+    ----------
+    identificador : str
+        Identificador del usuario a crear.
 
     Returns
     -------
-    tuple[str, int]
-        - 200: Mensaje de éxito si se registra el usuario correctamente.
-        - 400: Si la contraseña no cumple con los requisitos.
-        - 403: Si un administrador diferente al superadministrador intenta crear otro administrador.
-        - 409: Si el usuario ya existe.
+    Tuple[str, int]
+        Un par (mensaje, código de estado). El código puede ser:
+        - 200 si el usuario se registra exitosamente.
+        - 400 si la contraseña no cumple con los requisitos.
+        - 403 si un administrador distinto del superadministrador intenta crear otro administrador.
+        - 409 si el usuario ya existe.
     """
     current_user = get_jwt_identity()
-
     gu = GestorUsuarios()
     if not isinstance(gu.buscar_usuario(current_user), Administrador):
         return 'Solo los administradores pueden crear usuarios', 403
@@ -244,19 +254,18 @@ def add_usuario(identificador: str) -> tuple[str, int]:
 
 @app.route('/usuario', methods=['PUT'])
 @jwt_required()
-def update_usuario() -> tuple[str, int]:
+def update_usuario() -> Tuple[str, int]:
     """
     Actualiza la información de un usuario existente.
 
     El usuario que realiza la solicitud solo puede actualizar sus propios datos.
-    Los datos se obtienen desde los argumentos de la solicitud (request.args):
-    nombre, apellido1, apellido2.
+    Toma los datos (nombre, apellido1, apellido2) desde los argumentos de la petición.
 
     Returns
     -------
-    tuple[str, int]
-        - 200: Mensaje de éxito si se actualiza correctamente.
-        - 404: Si el usuario no se encuentra.
+    Tuple[str, int]
+        - 200 si se actualiza correctamente.
+        - 404 si el usuario no se encuentra.
     """
     identificador = get_jwt_identity()
     nombre = request.args.get('nombre')
@@ -273,85 +282,80 @@ def update_usuario() -> tuple[str, int]:
 
 @app.route('/usuario', methods=['GET'])
 @jwt_required()
-def get_usuario_actual() -> tuple[dict, int]:
+def get_usuario_actual() -> Tuple[Dict[str, Any], int]:
     """
-    Obtiene la información de un usuario.
+    Obtiene la información del usuario autenticado.
 
-    Si el usuario autenticado no es administrador, solo puede obtener su propia información.
-    Si el usuario autenticado es administrador, puede obtener la información de otro usuario
-    pasando el argumento `identificador`. Si no se pasa `identificador`, se devolverá la información
-    del propio administrador.
+    Retorna la información del usuario que está realizando la petición,
+    convirtiéndola a un diccionario mediante `to_dict()`.
 
     Returns
     -------
-    tuple[dict, int]
-        - 403: Si se intenta solicitar la información de otro usuario sin ser administrador.
-        - 404: Si el usuario consultado no existe.
-        - 200: Un diccionario JSON con la información del usuario solicitado (o del mismo usuario).
+    Tuple[Dict[str, Any], int]
+        Un par (diccionario con información del usuario, código 200).
     """
     gu = GestorUsuarios()
     current_user = gu.buscar_usuario(get_jwt_identity())
     return jsonify(current_user.to_dict()), 200
 
 
-
 @app.route('/usuario/<string:identificador>', methods=['GET'])
 @jwt_required()
-def get_usuario(identificador) -> tuple[dict, int]:
+def get_usuario(identificador: str) -> Tuple[Union[Dict[str, Any], str], int]:
     """
-    Obtiene la información de un usuario.
+    Obtiene la información de un usuario específico. Solo los administradores pueden hacerlo.
 
-    Si el usuario autenticado no es administrador, solo puede obtener su propia información.
-    Si el usuario autenticado es administrador, puede obtener la información de otro usuario
-    pasando el argumento `identificador`. Si no se pasa `identificador`, se devolverá la información
-    del propio administrador.
+    Parameters
+    ----------
+    identificador : str
+        Identificador del usuario que se desea consultar.
 
     Returns
     -------
-    tuple[dict, int]
-        - 403: Si se intenta solicitar la información de otro usuario sin ser administrador.
-        - 404: Si el usuario consultado no existe.
-        - 200: Un diccionario JSON con la información del usuario solicitado (o del mismo usuario).
+    Tuple[Union[Dict[str, Any], str], int]
+        - 403 si el usuario autenticado no es administrador.
+        - 404 si el usuario consultado no existe.
+        - 200 y la información del usuario si se encuentra.
     """
     gu = GestorUsuarios()
     current_user = gu.buscar_usuario(get_jwt_identity())
 
-    # No administrador
     if not isinstance(current_user, Administrador):
         return 'Solo los administrdores pueden mostrar información de otros usuarios', 403
+
+    u = gu.buscar_usuario(identificador)
+    if u:
+        return jsonify(u.to_dict()), 200
     else:
-        u = gu.buscar_usuario(identificador)
-        if u:
-            return jsonify(u.to_dict()), 200
-        else:
-            return f'Usuario con identificador {identificador} no encontrado', 404
+        return f'Usuario con identificador {identificador} no encontrado', 404
 
 
-
-@app.route('/usuario', methods=['DELETE'])
+@app.route('/usuario/<string:identificador>', methods=['DELETE'])
 @jwt_required()
-def remove_usuario() -> tuple[str, int]:
+def remove_usuario(identificador: str) -> Tuple[str, int]:
     """
     Elimina un usuario del sistema. Solo los administradores pueden realizar esta acción.
 
-    Verifica que el usuario no tenga libros prestados antes de eliminarlo,
-    ya que no se permite eliminar usuarios con préstamos pendientes.
+    Verifica que el usuario no tenga libros prestados. De lo contrario,
+    no se permite eliminarlo.
+
+    Parameters
+    ----------
+    identificador : str
+        Identificador del usuario a eliminar.
 
     Returns
     -------
-    tuple[str, int]
-        - 403: Si el usuario autenticado no es administrador.
-        - 404: Si el usuario a eliminar no existe.
-        - 409: Si el usuario tiene préstamos pendientes.
-        - 200: Mensaje de éxito si se elimina correctamente.
+    Tuple[str, int]
+        - 403 si el usuario autenticado no es administrador.
+        - 404 si el usuario no existe.
+        - 409 si el usuario tiene préstamos pendientes.
+        - 200 si se elimina exitosamente.
     """
-    identificador = get_jwt_identity()
-
+    current_id = get_jwt_identity()
     gu = GestorUsuarios()
-    if not isinstance(gu.buscar_usuario(identificador), Administrador):
+    if not isinstance(gu.buscar_usuario(current_id), Administrador):
         return 'Solo los administradores pueden eliminar usuarios', 403
-
-    identificador = request.args.get('identificador')
 
     gp = GestorPrestamos()
     if gp.buscar_prestamos_usuario(identificador):
@@ -365,30 +369,34 @@ def remove_usuario() -> tuple[str, int]:
             return f'Usuario {identificador} no encontrado', 404
 
 
-@app.route('/libro', methods=['POST'])
+@app.route('/libro/<string:isbn>', methods=['POST'])
 @jwt_required()
-def add_libro() -> tuple[str, int]:
+def add_libro(isbn: str) -> Tuple[str, int]:
     """
     Añade un nuevo libro al sistema. Solo los administradores pueden realizar esta acción.
 
-    Obtiene los datos del libro (isbn, título, autor, editorial, año) desde
-    los argumentos de la solicitud (request.args). Si faltan datos, se intenta
-    obtener la información a partir del ISBN llamando a `Libro.por_isbn()`,
-    que podría requerir una conexión externa (puede fallar).
+    Obtiene los datos del libro (titulo, autor, editorial, anyo) desde
+    los argumentos de la petición (request.args). Si faltan datos, se intenta
+    obtener la información a partir del ISBN llamando a `Libro.por_isbn()`
+    (puede fallar si no hay conexión externa).
+
+    Parameters
+    ----------
+    isbn : str
+        ISBN del libro a crear.
 
     Returns
     -------
-    tuple[str, int]
-        - 200: Mensaje de éxito si se crea el libro correctamente.
-        - 403: Si el usuario autenticado no es administrador.
-        - 409: Si el libro ya existe.
-        - 424: Si no se pueden obtener datos externos para el libro (falla de conexión).
+    Tuple[str, int]
+        - 403 si el usuario autenticado no es administrador.
+        - 409 si el libro ya existe.
+        - 424 si no se pueden obtener datos externos (falla de conexión).
+        - 200 si se crea correctamente.
     """
     gu = GestorUsuarios()
     if not isinstance(gu.buscar_usuario(get_jwt_identity()), Administrador):
         return 'Solo los administradores pueden crear libros', 403
 
-    isbn = request.args.get('isbn')
     titulo = request.args.get('titulo')
     autor = request.args.get('autor')
     editorial = request.args.get('editorial')
@@ -411,28 +419,32 @@ def add_libro() -> tuple[str, int]:
         return f'Libro con ISBN {isbn} ya existe', 409
 
 
-@app.route('/libro', methods=['PUT'])
+@app.route('/libro/<string:isbn>', methods=['PUT'])
 @jwt_required()
-def update_libro() -> tuple[str, int]:
+def update_libro(isbn: str) -> Tuple[str, int]:
     """
-    Actualiza la información de un libro existente. Solo los administradores pueden realizar esta acción.
+    Actualiza la información de un libro existente. Solo los administradores pueden hacerlo.
 
-    Si el libro se encuentra prestado, no se permite actualizar. Los datos
-    (título, autor, editorial, año) se obtienen de la solicitud.
+    Si el libro se encuentra prestado, no se permite actualizarlo.
+    Los datos (titulo, autor, editorial, anyo) se obtienen de la petición.
+
+    Parameters
+    ----------
+    isbn : str
+        ISBN del libro a actualizar.
 
     Returns
     -------
-    tuple[str, int]
-        - 200: Mensaje de éxito si se actualiza el libro.
-        - 403: Si el usuario autenticado no es administrador.
-        - 404: Si el libro no existe.
-        - 409: Si el libro está prestado y no puede actualizarse.
+    Tuple[str, int]
+        - 403 si el usuario autenticado no es administrador.
+        - 404 si el libro no existe.
+        - 409 si el libro está prestado.
+        - 200 si se actualiza correctamente.
     """
     gu = GestorUsuarios()
     if not isinstance(gu.buscar_usuario(get_jwt_identity()), Administrador):
         return 'Solo los administradores pueden actualizar libros', 403
 
-    isbn = request.args.get('isbn')
     titulo = request.args.get('titulo')
     autor = request.args.get('autor')
     editorial = request.args.get('editorial')
@@ -452,27 +464,30 @@ def update_libro() -> tuple[str, int]:
         return f'Libro con ISBN {isbn} no existe', 404
 
 
-@app.route('/libro', methods=['DELETE'])
+@app.route('/libro/<string:isbn>', methods=['DELETE'])
 @jwt_required()
-def remove_libro() -> tuple[str, int]:
+def remove_libro(isbn: str) -> Tuple[str, int]:
     """
     Elimina un libro del sistema. Solo los administradores pueden realizar esta acción.
 
     Verifica que el libro no se encuentre prestado antes de eliminarlo.
 
+    Parameters
+    ----------
+    isbn : str
+        ISBN del libro a eliminar.
+
     Returns
     -------
-    tuple[str, int]
-        - 200: Mensaje de éxito si se elimina el libro.
-        - 403: Si el usuario autenticado no es administrador.
-        - 404: Si el libro no existe.
-        - 409: Si el libro está prestado y no puede eliminarse.
+    Tuple[str, int]
+        - 403 si el usuario autenticado no es administrador.
+        - 404 si el libro no existe.
+        - 409 si el libro está prestado.
+        - 200 si se elimina correctamente.
     """
     gu = GestorUsuarios()
     if not isinstance(gu.buscar_usuario(get_jwt_identity()), Administrador):
         return 'Solo los administradores pueden eliminar libros', 403
-
-    isbn = request.args.get('isbn')
 
     gl = GestorLibros()
     gp = GestorPrestamos()
@@ -488,27 +503,31 @@ def remove_libro() -> tuple[str, int]:
         return f'Libro con ISBN {isbn} no existe', 404
 
 
-@app.route('/libro', methods=['GET'])
+@app.route('/libro/<string:isbn>', methods=['GET'])
 @jwt_required(optional=True)
-def get_libro() -> tuple[object, int]:
+def get_libro(isbn: str) -> Tuple[Union[Dict[str, Any], str], int]:
     """
     Obtiene la información de un libro.
 
-    Si el usuario está autenticado y es administrador, se devuelve también
-    información sobre si el libro está prestado y a qué usuario. Si el usuario
-    no es administrador (o no está autenticado), solo se indica si el libro
-    está disponible o no.
+    - Si el usuario está autenticado y es administrador, se incluye información
+      sobre si el libro está prestado y a qué usuario.
+    - Si el usuario no es administrador (o no está autenticado), solo se indica
+      si el libro está disponible o no.
+
+    Parameters
+    ----------
+    isbn : str
+        ISBN del libro a consultar.
 
     Returns
     -------
-    tuple[Union[dict, str], int]
-        - 200: Diccionario con la información del libro.
-        - 404: Mensaje de error si no se encuentra el libro.
+    Tuple[Union[Dict[str, Any], str], int]
+        - 404 si el libro no existe.
+        - 200 y un diccionario con la información del libro.
     """
     gl = GestorLibros()
     gp = GestorPrestamos()
     gu = GestorUsuarios()
-    isbn = request.args.get('isbn')
 
     l = gl.buscar_libro(isbn)
     if l:
@@ -527,29 +546,32 @@ def get_libro() -> tuple[object, int]:
         return f'Libro con ISBN {isbn} no encontrado', 404
 
 
-@app.route('/prestamo', methods=['POST'])
+@app.route('/prestamo/<string:isbn>', methods=['POST'])
 @jwt_required()
-def add_prestamo() -> tuple[str, int]:
+def add_prestamo(isbn: str) -> Tuple[str, int]:
     """
     Añade un nuevo préstamo. Solo los administradores pueden realizar esta acción.
 
-    Se obtiene el ISBN del libro y el identificador del usuario desde los argumentos
-    de la solicitud (request.args). Si el libro ya está prestado, se responde con un error.
+    Obtiene el identificador del usuario desde los argumentos de la solicitud (request.args).
+    Si el libro ya está prestado, se responde con un error.
+
+    Parameters
+    ----------
+    isbn : str
+        ISBN del libro que se desea prestar.
 
     Returns
     -------
-    tuple[str, int]
-        - 200: Mensaje de éxito si se presta el libro correctamente.
-        - 403: Si el usuario autenticado no es administrador.
-        - 409: Si el libro ya está prestado.
+    Tuple[str, int]
+        - 403 si el usuario autenticado no es administrador.
+        - 409 si el libro ya está prestado.
+        - 200 si el libro se presta exitosamente.
     """
     gu = GestorUsuarios()
     if not isinstance(gu.buscar_usuario(get_jwt_identity()), Administrador):
         return 'Solo los administradores pueden prestar libros', 403
 
-    isbn = request.args.get('isbn')
     identificador = request.args.get('identificador')
-
     gp = GestorPrestamos()
 
     try:
@@ -560,24 +582,27 @@ def add_prestamo() -> tuple[str, int]:
         return f'El libro con ISBN {isbn} ya está prestado al usuario {identificador}', 409
 
 
-@app.route('/prestamo', methods=['DELETE'])
+@app.route('/prestamo/<string:isbn>', methods=['DELETE'])
 @jwt_required()
-def remove_prestamo() -> tuple[str, int]:
+def remove_prestamo(isbn: str) -> Tuple[str, int]:
     """
-    Elimina (devuelve) un préstamo. Solo los administradores pueden realizar esta acción.
+    Elimina (registra la devolución) de un préstamo. Solo los administradores pueden realizar esta acción.
 
-    Se obtiene el ISBN del libro desde los argumentos de la solicitud (request.args) y
-    se utiliza el identificador del token JWT para verificar quién devuelve el libro.
+    Se utiliza el identificador del token JWT para verificar quién devuelve el libro.
     Si el préstamo no existe o no corresponde al usuario, se devuelve un error.
+
+    Parameters
+    ----------
+    isbn : str
+        ISBN del libro que se va a devolver.
 
     Returns
     -------
-    tuple[str, int]
-        - 200: Mensaje de éxito si se devuelve el libro correctamente.
-        - 403: Si el libro no está prestado al usuario que hace la solicitud.
-        - 404: Si el libro no está prestado.
+    Tuple[str, int]
+        - 200 si el libro se devuelve correctamente.
+        - 403 si el préstamo no pertenece al usuario que hace la solicitud.
+        - 404 si el libro no está prestado.
     """
-    isbn = request.args.get('isbn')
     try:
         gp = GestorPrestamos()
         gp.remove_prestamo(isbn, get_jwt_identity())
@@ -591,19 +616,17 @@ def remove_prestamo() -> tuple[str, int]:
 
 @app.route('/cambiar_password', methods=['PUT'])
 @jwt_required()
-def cambiar_password() -> tuple[str, int]:
+def cambiar_password() -> Tuple[str, int]:
     """
-    Cambia la contraseña de un usuario, verificando primero la contraseña antigua.
+    Cambia la contraseña de un usuario autenticado, verificando primero la contraseña antigua.
 
-    Se obtienen la contraseña antigua y la nueva desde los argumentos de la solicitud (request.args).
-    Se verifica que la nueva contraseña cumpla con los requisitos de complejidad, y que
-    la contraseña antigua coincida con la almacenada.
+    La nueva contraseña debe cumplir con los requisitos de complejidad.
 
     Returns
     -------
-    tuple[str, int]
-        - 200: Si la contraseña se cambia correctamente.
-        - 400: Si la contraseña antigua no coincide o la nueva no cumple requisitos.
+    Tuple[str, int]
+        - 200 si la contraseña se actualiza correctamente.
+        - 400 si la contraseña antigua no coincide o la nueva no cumple requisitos.
     """
     gu = GestorUsuarios()
 
@@ -622,35 +645,39 @@ def cambiar_password() -> tuple[str, int]:
     usuario_a_actualizar = gu.buscar_usuario(identificador)
 
     if usuario_a_actualizar.hashed_password == old_password_hash:
-        gu.buscar_usuario(identificador).hashed_password = new_password_hash
+        usuario_a_actualizar.hashed_password = new_password_hash
         gu.guardar_usuarios()
         return 'Contraseña cambiada correctamente', 200
     else:
         return 'Contraseña antigua incorrecta', 400
 
 
-@app.route('/caratula', methods=['POST'])
+@app.route('/caratula/<string:isbn>', methods=['POST'])
 @jwt_required()
-def subir_caratula() -> tuple[str, int]:
+def subir_caratula(isbn: str) -> Tuple[str, int]:
     """
     Sube la carátula de un libro. Solo los administradores pueden realizar esta acción.
 
-    Recibe el archivo de carátula a través de un campo `file` de tipo multipart/form-data.
-    El archivo se guarda en la carpeta configurada en `app.config['UPLOAD_FOLDER']` con
-    el nombre ISBN.extensión.
+    Recibe el archivo de carátula desde un campo 'file' de tipo multipart/form-data
+    y lo guarda en la carpeta configurada en 'app.config["UPLOAD_FOLDER"]'
+    con nombre ISBN + extensión original.
+
+    Parameters
+    ----------
+    isbn : str
+        ISBN del libro al que se desea subir la carátula.
 
     Returns
     -------
-    tuple[str, int]
-        - 403: Si el usuario autenticado no es administrador.
-        - 404: Si el libro no existe.
-        - 200: Si se guarda la carátula correctamente.
+    Tuple[str, int]
+        - 403 si el usuario autenticado no es administrador.
+        - 404 si el libro no existe.
+        - 200 si se guarda la carátula exitosamente.
     """
     gu = GestorUsuarios()
     if not isinstance(gu.buscar_usuario(get_jwt_identity()), Administrador):
         return 'Solo los administradores pueden subir carátulas', 403
 
-    isbn = request.args.get('isbn')
     gl = GestorLibros()
     if not gl.buscar_libro(isbn):
         return f'Libro con ISBN {isbn} no encontrado', 404
@@ -661,22 +688,22 @@ def subir_caratula() -> tuple[str, int]:
     return f'Carátula del libro con ISBN {isbn} guardada', 200
 
 
-@app.route('/caratula', methods=['GET'])
-def bajar_caratula() -> tuple[object, int]:
+@app.route('/caratula/<string:isbn>', methods=['GET'])
+def bajar_caratula(isbn: str) -> Tuple[Union[Response, str], int]:
     """
     Descarga la carátula de un libro, si existe.
 
-    El endpoint recibe el ISBN del libro como parámetro `isbn`. Internamente
-    se llama a `GestorLibros.buscar_caratula()` para obtener la ruta de la
-    carátula.
+    Parameters
+    ----------
+    isbn : str
+        ISBN del libro cuya carátula se desea descargar.
 
     Returns
     -------
-    tuple[Union[send_file, str], int]
-        - 200: Si se encuentra la carátula y se envía el archivo.
-        - 404: Si no se encuentra el libro o no tiene carátula.
+    Tuple[Union[Response, str], int]
+        - 404 si no se encuentra el libro o no tiene carátula.
+        - 200 y el archivo si se encuentra.
     """
-    isbn = request.args.get('isbn')
     file = GestorLibros.buscar_caratula(isbn)
 
     if file is None:
@@ -686,7 +713,7 @@ def bajar_caratula() -> tuple[object, int]:
 
 
 @app.route('/exportar', methods=['GET'])
-def exportar() -> tuple[object, int]:
+def exportar() -> Tuple[Response, int]:
     """
     Exporta los datos de la biblioteca y los comprime en un archivo.
 
@@ -695,45 +722,48 @@ def exportar() -> tuple[object, int]:
 
     Returns
     -------
-    tuple[send_file, int]
-        - 200: Retorna el archivo exportado.
+    Tuple[Response, int]
+        Un par (archivo exportado, código 200).
     """
     return send_file(exportacion.comprime()), 200
 
 
 @app.route('/carne', methods=['GET'])
 @jwt_required()
-def bajar_carne() -> tuple[object, int]:
+def bajar_carne() -> Tuple[Response, int]:
     """
     Descarga el carné de un usuario autenticado.
 
-    Genera un carné en formato PDF u otro formato configurable con la función
-    `generar_carne()`, basándose en la información del usuario autenticado.
+    Genera un carné con la función `generar_carne()`, basándose en la
+    información del usuario autenticado.
 
     Returns
     -------
-    tuple[send_file, int]
-        - 200: Retorna el archivo con el carné del usuario.
+    Tuple[Response, int]
+        Un par (archivo, código 200) con el carné del usuario.
     """
     gu = GestorUsuarios()
     return send_file(generar_carne(gu.buscar_usuario(get_jwt_identity()))), 200
 
 
-@app.route('/ficha', methods=['GET'])
-def bajar_ficha() -> tuple[object, int]:
+@app.route('/ficha/<string:isbn>', methods=['GET'])
+def bajar_ficha(isbn: str) -> Tuple[Union[Response, str], int]:
     """
     Descarga la ficha de un libro (por ejemplo, en formato PDF).
 
-    Para generar la ficha, se obtiene el libro a partir del ISBN
-    (mediante `request.args.get('isbn')`) y luego se llama a `generar_ficha()`.
+    Se llama a `generar_ficha()` para generar la ficha.
+
+    Parameters
+    ----------
+    isbn : str
+        ISBN del libro cuya ficha se desea descargar.
 
     Returns
     -------
-    tuple[Union[send_file, str], int]
-        - 200: Retorna el archivo con la ficha del libro.
-        - 404: Si no se encuentra el libro.
+    Tuple[Union[Response, str], int]
+        - 200 y el archivo si se genera correctamente.
+        - 404 si no se encuentra el libro.
     """
-    isbn = request.args.get('isbn')
     gl = GestorLibros()
     l = gl.buscar_libro(isbn)
     if l:
@@ -744,18 +774,18 @@ def bajar_ficha() -> tuple[object, int]:
 
 @app.route('/informe_prestamos', methods=['GET'])
 @jwt_required()
-def bajar_informe_prestamos() -> tuple[object, int]:
+def bajar_informe_prestamos() -> Tuple[Union[Response, str], int]:
     """
     Descarga un informe de préstamos en formato PDF u otro formato definido.
 
-    Solo los administradores pueden generar informes de préstamos. Se llama a
-    `generar_prestamos()` para generar el archivo.
+    Solo los administradores pueden generar informes de préstamos.
+    Se llama a `generar_prestamos()` para generar el archivo.
 
     Returns
     -------
-    tuple[Union[send_file, str], int]
-        - 200: Retorna el archivo con el informe.
-        - 403: Si el usuario autenticado no es administrador.
+    Tuple[Union[Response, str], int]
+        - 403 si el usuario autenticado no es administrador.
+        - 200 y el archivo si se genera correctamente.
     """
     gu = GestorUsuarios()
     if not isinstance(gu.buscar_usuario(get_jwt_identity()), Administrador):
@@ -764,24 +794,28 @@ def bajar_informe_prestamos() -> tuple[object, int]:
     return send_file(generar_prestamos()), 200
 
 
-@app.route('/referencia', methods=['GET'])
-def get_referencia() -> tuple[object, int]:
+@app.route('/referencia/<string:isbn>', methods=['GET'])
+def get_referencia(isbn: str) -> Tuple[Union[Dict[str, Any], str], int]:
     """
-    Obtiene la referencia de un libro en un formato específico.
+    Obtiene la referencia de un libro en un formato específico (APA, MLA, etc.).
 
-    El formato se obtiene desde request.args.get('formato'). Se llama a la función
-    `generar_referencias()` del libro, la cual retorna un diccionario con distintas
-    posibles referencias (APA, MLA, etc.).
+    El formato se obtiene desde `request.args.get('formato')`. Se llama
+    a la función `generar_referencias()` del libro, que retorna un
+    diccionario con distintas referencias.
+
+    Parameters
+    ----------
+    isbn : str
+        ISBN del libro cuya referencia se solicita.
 
     Returns
     -------
-    tuple[Union[dict, str], int]
-        - 200: Retorna la referencia en el formato solicitado.
-        - 400: Si el formato no es válido.
-        - 404: Si no se encuentra el libro.
+    Tuple[Union[Dict[str, Any], str], int]
+        - 400 si el formato solicitado no es válido.
+        - 404 si el libro no existe.
+        - 200 y la referencia solicitada si se genera correctamente.
     """
     gl = GestorLibros()
-    isbn = request.args.get('isbn')
     formato = request.args.get('formato')
     l = gl.buscar_libro(isbn)
     if l:
@@ -792,27 +826,27 @@ def get_referencia() -> tuple[object, int]:
     else:
         return f'Libro con ISBN {isbn} no encontrado', 404
 
+
 @app.route('/log', methods=['GET'])
 @jwt_required()
-def bajar_log() -> tuple[object, int]:
+def bajar_log() -> Tuple[Union[Response, str], int]:
     """
     Descarga el fichero de registro (log) de los inicios de sesión del sistema.
 
-    Solo los usuarios con privilegios de administrador pueden descargar el log.
-    Si el usuario no es administrador, se devuelve un mensaje de error y el código
-    de estado 403.
+    Solo los administradores pueden descargar el log.
 
     Returns
     -------
-    tuple[Union[Response, str], int]
-        - (Response, 200) : El fichero de log si el usuario es administrador.
-        - (str, 403)      : Mensaje de error si el usuario no es administrador.
+    Tuple[Union[Response, str], int]
+        - 403 si el usuario no es administrador.
+        - 200 y el fichero de log si se tiene permiso.
     """
     gu = GestorUsuarios()
     if not isinstance(gu.buscar_usuario(get_jwt_identity()), Administrador):
         return 'Solo los administradores pueden descargar el log', 403
 
     return send_file(PATH_LOG), 200
+
 
 if __name__ == '__main__':
     app.run(debug=True)
